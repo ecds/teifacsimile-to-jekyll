@@ -5,38 +5,194 @@ require 'yaml'
 # based in part on https://gist.github.com/juniorz/1564581
 
 # usage: ruby import.rb annotated-teifacsimile.xml
-puts ARGV[0]
 
-teidoc = File.open(ARGV[0]) { |f| Nokogiri::XML(f) }
-$tei_namespace = "http://www.tei-c.org/ns/1.0"
+TEI_NAMESPACE = "http://www.tei-c.org/ns/1.0"
+$TEI_NS = {'t' => TEI_NAMESPACE}
+
+class TeiTitleStatement
+    def initialize(xmlelement)
+        @el = xmlelement
+    end
+
+    def main
+        return @el.at_xpath('.//t:title[@type="main"]', $TEI_NS).content
+    end
+
+    def subtitle
+        return @el.at_xpath('.//t:title[@type="sub"]', $TEI_NS).content
+    end
+end
+
+class TeiFacsimilePage
+    def initialize(xmlelement)
+        @el = xmlelement
+    end
+
+    def id
+        return @el['xml:id']
+    end
+
+    def n
+        return @el['n']
+    end
+
+    def images
+        return @el.xpath('t:graphic', $TEI_NS)
+    end
+
+    def annotation_count
+        return @el.xpath('count(.//t:anchor[@type="text-annotation-highlight-start"]
+            |.//t:zone[@type="image-annotation-highlight"])', $TEI_NS).to_i
+    end
+end
+
+class TeiNote
+    def initialize(xmlelement)
+        @el = xmlelement
+    end
+
+    def id
+        return @el['xml:id']
+    end
+
+    def author
+        return @el['resp']
+    end
+
+    def target
+        return @el['target']
+    end
+
+    def start_target
+        return @start_target
+    end
+
+    def end_target
+        return @end_target
+    end
+
+    def range_target?
+        return self.target.start_with?('#range')
+    end
+
+    def annotated_page
+        # find the page that is annotated by this note
+        if self.range_target?
+            # text selections are stored in tei like
+            # #range(#start_id, #end_id)
+            target = self.target.gsub(/(^#range\(|\)$)/, '')
+            @start_target, @end_target = target.split(', ')
+            @start_target.gsub!(/^#/, '')
+            @end_target.gsub!(/^#/, '')
+        else
+            # target ref format is #id; strip out # to get xml:id
+            @start_target = self.target.gsub(/^#/, '')
+        end
+
+        # find the page that contains the annotation reference
+        @annotated_page = TeiFacsimilePage.new(@el.at_xpath('//t:surface[@type="page"][.//*[@xml:id="%s"]]' % @start_target, $TEI_NS))
+
+        return @annotated_page
+    end
+
+    def markdown
+        md = @el.at_xpath('.//t:code[@lang="markdown"]', $TEI_NS)
+        return md.content unless md.nil?
+    end
+
+end
+
+class TeiBibl
+    def initialize(el)
+        @el = el
+    end
+
+    def type
+        @el['type']
+    end
+
+    def title
+        el = @el.at_xpath('t:title', $TEI_NS)
+        return el.content unless el.nil?
+    end
+
+    def date
+        el = @el.at_xpath('t:date', $TEI_NS)
+        return el.content unless el.nil?
+    end
+
+    def author
+        el = @el.at_xpath('t:author', $TEI_NS)
+        return el.content unless el.nil?
+    end
+
+    def references
+        @refs = {}
+        @el.xpath('tei:ref').each do |ref|
+            @refs[ref['type']] = ref['target']
+        end
+        return @refs
+    end
+end
+
+class TeiFacsimile
+    def initialize(xmldoc)
+        @xmldoc = xmldoc
+    end
+
+    def title
+        @title = TeiTitleStatement.new(@xmldoc.at_xpath('//t:teiHeader/t:fileDesc/t:titleStmt',
+            $TEI_NS))
+        return @title
+    end
+
+    def source_bibl
+        @bibl = {}
+        @xmldoc.xpath('//t:teiHeader/t:fileDesc/t:sourceDesc/t:bibl', $TEI_NS).each do |el|
+            @bibl[el['type']] = TeiBibl.new(el)
+        end
+        return @bibl
+    end
+
+    def pages
+        @pages = []
+        @xmldoc.xpath('//t:facsimile/t:surface[@type="page"]', $TEI_NS).each do |teipage|
+            @pages << TeiFacsimilePage.new(teipage)
+        end
+        return @pages
+    end
+
+    def annotations
+        @annotations = []
+        @xmldoc.xpath('//t:note[@type="annotation"]', $TEI_NS).each do |note|
+            @annotations << TeiNote.new(note)
+        end
+        return @annotations
+    end
+
+end
+
+teixml = File.open(ARGV[0]) { |f| Nokogiri::XML(f) }
+teidoc = TeiFacsimile.new(teixml)
+
 $volume_page_dir = '_volume_pages'
 $annotation_dir = '_annotations'
 
+
 def output_page(teipage)
-    puts "Page #{teipage['n']}"
-    path = File.join($volume_page_dir, "%04d.html" % teipage['n'])
-    # page front matter
-    front_matter = {
-        # 'layout' => 'volume_page',  # NOTE: may be able to set a default in site config
-        'title'=> 'Page %s' % teipage['n'],
-        'page_order'=> teipage['n'].to_i,
-        'tei_id' => teipage['xml:id']
-    }
-    puts front_matter
-
-    # retrieve page graphic urls by type and add to front matter
-    graphics = teipage.xpath('tei:graphic', 'tei' => $tei_namespace)
+    puts "Page #{teipage.n}"
+    path = File.join($volume_page_dir, "%04d.html" % teipage.n)
+    # retrieve page graphic urls by type for inclusion in front matter
     images = {}  # hash of image urls by rend attribute
-    graphics.each { |graphic| images[graphic['rend']] = graphic['url'] }
-    # add image urls to front matter as well
-    front_matter['images'] = images
-
-    count = teipage.xpath('count(.//tei:anchor[@type="text-annotation-highlight-start"]|.//tei:zone[@type="image-annotation-highlight"])')
-    front_matter['annotation_count'] = count.to_i
-    puts front_matter.to_yaml
-    # TODO: pull out graphic details
-    # 'thumbnail': teipage['thumbnail']['url'],
-    # 'small_thumbnail': teipage['thumbnail']['url'],
+    teipage.images.each { |img| images[img['rend']] = img['url'] }
+    # construct page front matter
+    front_matter = {
+        'title'=> 'Page %s' % teipage.n,
+        'page_order'=> teipage.n.to_i,
+        'tei_id' => teipage.id,
+        'annotation_count' => teipage.annotation_count,
+        'images' => images
+    }
 
     File.open(path, 'w') do |file|
         # write out front matter as yaml
@@ -48,51 +204,26 @@ def output_page(teipage)
     end
 end
 
-def output_annotation(teinote, teidoc)
-    puts "Annotation #{teinote['xml:id']}"
-    path = File.join($annotation_dir, "%s.html" % teinote['xml:id'])
-    puts 'annotation file is ', path
+def output_annotation(teinote)
+    puts "Annotation #{teinote.id}"
+    path = File.join($annotation_dir, "%s.md" % teinote.id)
     front_matter = {
-        'annotation_id' => teinote['xml:id'],
-        'author' => teinote['resp'],
-        'tei_target' => teinote['target'],
+        'annotation_id' => teinote.id,
+        'author' => teinote.author,
+        'tei_target' => teinote.target,
+        'annotated_page' => teinote.annotated_page.id,
+        'target' => teinote.start_target
     }
-    # TODO: check for tags and add to front matter
-    # determine which page is being annotated
-    puts teinote['target']
-    if teinote['target'].start_with?('#range')
-        # text selections are stored in tei like
-        # #range(#start_id, #end_id)
-        puts 'range target'
-        target = teinote['target'].gsub(/(^#range\(|\)$)/, '')
-        # target = teinote['target'].sub('#range(', '').sub(')', '')
-        puts target
-        start_target, end_target = target.split(', ')
-        puts 'start = %s' % start_target.gsub!(/^#/, '')
-        puts 'end  = %s' % end_target.gsub!(/^#/, '')
-        front_matter.merge!({'target' => start_target, 'end_target'=> end_target})
-        target_id = start_target
-    else
-        # target ref format is #id; strip out # to get xml:id
-        target_id = teinote['target'].gsub(/^#/, '')
-        front_matter['target'] = target_id
+    if teinote.range_target?
+        front_matter['end_target'] = teinote.end_target
     end
-
-    # find the id of page that contains the annotation reference
-    xpath = '//tei:surface[@type="page"][.//*[@xml:id="%s"]]' % target_id
-    # teipage = teidoc.xpath(xpath).first()
-    teipage = teinote.at_xpath(xpath)
-    front_matter['annotated_page'] = teipage['xml:id']
-    # get the content as markdown, for easier display
-    markdown = teinote.at_xpath('.//tei:code[@lang="markdown"]',
-        'tei' => $tei_namespace)
 
     File.open(path, 'w') do |file|
         # write out front matter as yaml
         file.write front_matter.to_yaml
         file.write  "\n---\n"
         # annotation content
-        file.write markdown.content
+        file.write teinote.markdown
 
     end
 
@@ -100,13 +231,13 @@ end
 
 # puts teidoc.xpath('//tei:facsimile/tei:surface[@type="page"]')
 
+
+
 # generate a volume page document for every facsimile page in the TEI
 puts "** Writing volume pages"
 FileUtils.rm_rf($volume_page_dir)
 Dir.mkdir($volume_page_dir) unless File.directory?($volume_page_dir)
-teidoc.xpath('//tei:facsimile/tei:surface[@type="page"]',
-                            'tei' => $tei_namespace).each do |teipage|
-    puts "%s %s" % [teipage['xml:id'], teipage['n']]
+teidoc.pages.each do |teipage|
     output_page(teipage)
 end
 
@@ -115,9 +246,8 @@ puts "** Writing annotations"
 FileUtils.rm_rf($annotation_dir)
 Dir.mkdir($annotation_dir) unless File.directory?($annotation_dir)
 
-teidoc.xpath('//tei:note[@type="annotation"]',
-             'tei' => $tei_namespace).each do |teinote|
-    output_annotation(teinote, teidoc)
+teidoc.annotations.each do |teinote|
+    output_annotation(teinote)
 end
 
 
@@ -126,33 +256,34 @@ if File.exist?('_config.yml')
     siteconfig = YAML.load_file('_config.yml')
 
     # set site title and subtitle from the tei
-    title_statement = teidoc.xpath('//tei:teiHeader/tei:fileDesc/tei:titleStmt',
-        'tei' => $tei_namespace)
-    title = title_statement.at_xpath('//tei:title[@type="main"]', 'tei' => $tei_namespace)
-    siteconfig['title'] = title.content
-    subtitle = title_statement.at_xpath('//tei:title[@type="sub"]', 'tei' => $tei_namespace)
-    siteconfig['tagline'] = subtitle.content
+    siteconfig['title'] = teidoc.title.main
+    siteconfig['tagline'] = teidoc.title.subtitle
 
     # placeholder description for author to edit (todo: include annotation author name here?)
     siteconfig['description'] = 'An annotated digital edition created with <a href="http://readux.library.emory.edu/">Readux</a>'
 
     # add urls to readux volume and pdf
-    digital_bibl = teidoc.at_xpath('//tei:sourceDesc/tei:bibl[@type="digital"]')
-    digital_edition = digital_bibl.at_xpath('tei:ref[@type="digital-edition"]')
-    pdf = digital_bibl.at_xpath('tei:ref[@type="pdf"]')
-    siteconfig['readux_url'] = digital_edition['target']
-    siteconfig['readux_pdf_url'] = pdf['target']
+    siteconfig['readux_url'] = teidoc.source_bibl['digital'].references['digital-edition']
+    siteconfig['readux_pdf_url'] = teidoc.source_bibl['digital'].references['pdf']
+
+    # add original publication information
+    original = teidoc.source_bibl['original']
+    pubinfo = {'title' => original.title, 'author' => original.author,
+        'date' => original.date}
 
     # configure collections specific to tei facsimile + annotation data
     siteconfig.merge!({
+        'publication_info' => pubinfo,
         'collections' => {
+            # NOTE: annotations *must* come first, so content can
+            # be rendered for display in volume pages templates
+            'annotations' => {
+                'output' => false
+            },
             'volume_pages' => {
                 'output' => true,
                 'permalink' => '/pages/:path/'
             },
-            'annotations' => {
-                'output' => false
-            }
         },
         'defaults' => {
            'scope' => {
@@ -162,9 +293,7 @@ if File.exist?('_config.yml')
             'values' => {
                 'layout' => 'volume_pages'
             }
-
           }
-
     })
     # TODO:
     # - author information from resp statement?
@@ -175,5 +304,3 @@ if File.exist?('_config.yml')
     end
 end
 
-# todo: placeholder pages for introduction, credits
-# perhaps easier to fork lanyon theme?
