@@ -1,6 +1,7 @@
 require 'fileutils'
 require 'nokogiri'
 require 'yaml'
+require 'erb'
 
 # based in part on https://gist.github.com/juniorz/1564581
 
@@ -31,6 +32,8 @@ class XmlObject
 
             if opts[:type] == Integer
                 content.to_i
+            elsif opts[:type] == Float
+                content.to_f
             else
                 content
             end
@@ -101,6 +104,117 @@ class TeiGraphic < TeiXmlObject
     xml_attr_reader :url, :xpath => '@url'
 end
 
+class TeiZone < TeiXmlObject
+    xml_attr_reader :id, :xpath => '@xml:id'
+    xml_attr_reader :n, :xpath => '@n'
+    xml_attr_reader :type, :xpath => '@type'
+    xml_attr_reader :ulx, :xpath => '@ulx', :type => Float
+    xml_attr_reader :uly, :xpath => '@uly', :type => Float
+    xml_attr_reader :lrx, :xpath => '@lrx', :type => Float
+    xml_attr_reader :lry, :xpath => '@lry', :type => Float
+    xml_attr_reader :href, :xpath => '@xlink:href'  # maybe not needed?
+    xml_attr_reader :text, :xpath => 't:line|t:w'
+    xml_attr_reader :word_zones, :xpath => './/t:zone[@type="string"]',
+        :as => TeiZone, :list => true
+
+    #: nearest ancestor zone
+    xml_attr_reader :parent, :xpath => 'ancestor::t:zone[1]', :as => TeiZone
+    #: containing page
+    xml_attr_reader :page, :xpath => 'ancestor::t:surface[@type="page"]',
+        :as => TeiZone
+    # # not exactly a zone, but same attributes we care about (type, id, ulx/y, lrx/y)
+
+    def width
+        self.lrx - self.ulx
+    end
+
+    def height
+        self.lry - self.uly
+    end
+
+    def avg_height
+        '''Calculated average height of word zones in the current zone
+        (i.e. in a text line)'''
+        unless self.word_zones.empty?
+            word_heights = []
+            self.word_zones.each do |w|
+                word_heights << w.height
+            end
+            return word_heights.inject{ |sum, el| sum + el }.to_f / word_heights.size
+        end
+    end
+
+    def long_edge
+        # return the size of the longer edge of this zone
+        [self.width, self.height].max
+    end
+
+    SINGLE_PAGE_SIZE = 1000
+    # FIXME: should be configured somewhere
+    # (we happen to know this is current readux full page size...)
+
+    def zone_style()
+        # generate html style and data attributes to position
+        # the ocr text based on coordinates in the TEI
+        # (logic adapted from readux)
+        styles = {}
+        data = {}
+        # determine scale from original page size to current display size,
+        # for non-relative styles (i.e. font sizes)
+        scale = SINGLE_PAGE_SIZE.to_f / self.page.long_edge.to_f
+
+        def percent(a, b)
+            # a as percentage of b
+            # ensure both are cast to float, divide, then multiply by 100
+            return (a.to_f / b.to_f) * 100
+        end
+
+        if ['textLine', 'line'].include? self.type
+            # text lines are absolutely positioned boxes
+            styles['left'] = '%.2f%%' % percent(self.ulx, self.page.width)
+            styles['top'] = '%.2f%%' % percent(self.uly, self.page.height)
+
+            # width relative to page size
+            styles['width'] = '%.2f%%' % percent(self.width, self.page.width)
+            styles['height'] = '%.2f%%' % percent(self.height, self.page.height)
+
+            # TODO: figure out how to determine this from ocr/teifacsimile
+            # rather than assuming
+            styles['text-align'] = 'left'
+
+            # set pixel-based font size for browsers that don't support viewport based sizes.
+            # for mets-alto, use average height of words in the line to calculate font size
+            # for abbyy ocr, no word zones exist, so just use line height
+            styles['font-size'] = '%.2fpx' % ((self.avg_height || self.height) * scale)
+
+            # calculate font size as percentage of page height;
+            # this will be used by javascript to calculate as % of viewport height
+            data['vhfontsize'] = '%.2f' % percent(self.lry - self.uly, self.page.height)
+
+        elsif self.type == 'string'
+            # set width & height relative to *parent* line, not the whole page
+            styles['width'] = '%.2f%%' % percent(self.width, self.parent.width)
+            styles['height'] = '%.2f%%' % percent(self.height, self.parent.height)
+
+            # position words absolutely within the line
+            styles['left'] = '%.2f%%' % percent(self.ulx - self.parent.ulx, self.parent.width)
+
+        end
+
+        # construct html style and data attribute string
+        attrs = ''
+        unless styles.empty?
+            attrs += 'style="%s"' % styles.map { |k, v| "#{k}:#{v}"}.join(';')
+        end
+        unless data.empty?
+            attrs += ' ' + data.map { |k, v | "data-#{k}='#{v}'"}.join(' ')
+        end
+
+        return attrs
+    end
+
+end
+
 class TeiFacsimilePage < TeiXmlObject
     xml_attr_reader :id, :xpath => '@xml:id'
     xml_attr_reader :n, :xpath => '@n'
@@ -112,11 +226,35 @@ class TeiFacsimilePage < TeiXmlObject
         :xpath => 'count(.//t:anchor[@type="text-annotation-highlight-start"]
             |.//t:zone[@type="image-annotation-highlight"])'
 
-    # TODO: ocr text zones, as mapped in readux
-    # #: list of zones with type textLine or line as :class:`Zone`
-    # lines = xmlmap.NodeListField('tei:facsimile//tei:zone[@type="textLine" or @type="line"]', Zone)
-    # #: list of word zones (type string) as :class:`Zone`
-    # word_zones = xmlmap.NodeListField('tei:facsimile//tei:zone[@type="string"]', Zone)
+    xml_attr_reader :lines, :xpath => './/t:zone[@type="textLine" or @type="line"]',
+        :as => TeiZone, :list => true
+
+    xml_attr_reader :word_zones, :xpath => './/t:zone[@type="string"]',
+        :as => TeiZone, :list => true
+
+    def template()
+        # template to position ocr text over the image
+        # - logic adapted from readux
+        %{
+        <% for line in self.lines %>
+        <div class="ocr-line <% if line.word_zones.empty? %>ocrtext<% end %>" <% if line.id %>id="<%= line.id %>"<% end %>
+            <%= line.zone_style %>>
+            <% for zone in line.word_zones %>
+            <div class="ocr-zone ocrtext" <%= zone.zone_style %>>
+               <span><%= zone.text %></span>
+            </div>
+            <% end %>
+            <% if line.word_zones.empty? %>
+                <span><%= line.text %></span>
+            <% end %>
+        </div>
+        <% end %>
+      }
+    end
+
+    def html()
+        return ERB.new(self.template()).result(binding)
+    end
 
 end
 
@@ -173,32 +311,6 @@ end
 teixml = File.open(ARGV[0]) { |f| Nokogiri::XML(f) }
 teidoc = TeiFacsimile.new(teixml)
 
-puts teidoc.title_statement
-puts teidoc.title_statement.title
-puts teidoc.title_statement.subtitle
-puts 'hash original = ', teidoc.source_bibl['original'].type
-puts 'hash original = ', teidoc.source_bibl['digital'].type
-# puts teidoc.title
-# puts teidoc.subtitle
-
-
-
-
-# {% for line in page.tei.content.lines %}
-#      <div class="ocr-line {% if not line.word_zones %}ocrtext{% endif %}" {{ line|zone_style:scale }}>
-#           {% for zone in line.word_zones %}
-#           {# NOTE: may not want ocrtext adjustment when there are multiple words on a line #}
-#           <div class="ocr-zone ocrtext" {{ zone|zone_style:scale }}>
-#               <span>{{ zone.text }}</span>
-#           </div>
-#           {% empty %} {# if no word zones, assume single line of text #}
-#             <span>{{ line.text }}</span>
-#   {% endfor %}
-#       </div>
-
-# teixml = File.open(ARGV[0]) { |f| Nokogiri::XML(f) }
-# teidoc = TeiFacsimile.new(teixml)
-
 $volume_page_dir = '_volume_pages'
 $annotation_dir = '_annotations'
 
@@ -224,7 +336,8 @@ def output_page(teipage)
         file.write  "\n---"
         # todo: unique page content that can't be handled by template
         # (should be primarily tei text and annotation references)
-        file.write "\n<img src='#{images["page"]}' />"
+        # file.write "\n<img src='#{images["page"]}' />"
+        file.write teipage.html()
     end
 end
 
