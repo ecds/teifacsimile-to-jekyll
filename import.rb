@@ -314,6 +314,11 @@ class TeiNote < TeiXmlObject
 
         return @annotated_page
     end
+
+    def annotation_id
+        self.id.gsub(/^annotation-/, '')
+    end
+
 end
 
 class TeiFacsimile < TeiXmlObject
@@ -371,7 +376,7 @@ def output_annotation(teinote)
     puts "Annotation #{teinote.id}"
     path = File.join($annotation_dir, "%s.md" % teinote.id)
     front_matter = {
-        'annotation_id' => teinote.id,
+        'annotation_id' => teinote.annotation_id,
         'author' => teinote.author,
         'tei_target' => teinote.target,
         'annotated_page' => teinote.annotated_page.id,
