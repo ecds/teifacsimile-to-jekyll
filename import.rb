@@ -199,6 +199,17 @@ class TeiZone < TeiXmlObject
             # position words absolutely within the line
             styles['left'] = '%.2f%%' % percent(self.ulx - self.parent.ulx, self.parent.width)
 
+        elsif self.type == 'image-annotation-highlight'
+            # image annotation zone; similar to line logic, but without font calculations
+
+            # image highlights are absolutely positioned boxes
+            styles['left'] = '%.2f%%' % percent(self.ulx, self.page.width)
+            styles['top'] = '%.2f%%' % percent(self.uly, self.page.height)
+
+            # size relative to page size
+            styles['width'] = '%.2f%%' % percent(self.width, self.page.width)
+            styles['height'] = '%.2f%%' % percent(self.height, self.page.height)
+
         end
 
         # construct html style and data attribute string
@@ -211,6 +222,12 @@ class TeiZone < TeiXmlObject
         end
 
         return attrs
+    end
+
+    def annotation_id
+        if self.type == 'image-annotation-highlight'
+            self.id.gsub(/^highlight-/, '')
+        end
     end
 
 end
@@ -232,6 +249,9 @@ class TeiFacsimilePage < TeiXmlObject
     xml_attr_reader :word_zones, :xpath => './/t:zone[@type="string"]',
         :as => TeiZone, :list => true
 
+    xml_attr_reader :image_highlight_zones, :xpath => 't:zone[@type="image-annotation-highlight"]',
+        :as => TeiZone, :list => true
+
     def template()
         # template to position ocr text over the image
         # - logic adapted from readux
@@ -248,6 +268,12 @@ class TeiFacsimilePage < TeiXmlObject
                 <span><%= line.text %></span>
             <% end %>
         </div>
+        <% end %>
+        <% for img_highlight in self.image_highlight_zones %>
+            <span class="annotator-hl image-annotation-highlight"
+                data-annotation-id="<%= img_highlight.annotation_id %>"
+                <%= img_highlight.zone_style %>>
+            </span>
         <% end %>
       }
     end
