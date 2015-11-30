@@ -631,7 +631,8 @@
           <tei:line>Miner, - - - 157</tei:line>
         </tei:zone>
         <tei:zone xml:id="rdx_7sr72.ln.idp1060480" type="line" ulx="371" uly="581" lrx="1410" lry="628">
-          <tei:line>" XIV.—In Search of a Father, - 162</tei:line>
+          <!-- partial annotation within a single line for testing (no corresponding note) -->
+          <tei:line>" XIV.—In <tei:anchor type="text-annotation-highlight-start" xml:id="highlight-start-4c69b06c-0888-4265-a891-5fa315f8fccd"/> Search of a Father, <tei:anchor type="text-annotation-highlight-end" xml:id="highlight-start-4c69b06c-0888-4265-a891-5fa315f8fccd"/> - 162</tei:line>
         </tei:zone>
         <tei:zone xml:id="rdx_7sr72.ln.idp1063584" type="line" ulx="370" uly="678" lrx="1410" lry="728">
           <tei:line>" XV.—Le Tslarquis de Bcauville, - 172</tei:line>

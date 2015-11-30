@@ -158,6 +158,44 @@ class TeiTest < Minitest::Unit::TestCase
         # image annotation zone - should have an annotation id
         imgzone = page.image_highlight_zones[0]
         assert_equal '11c8fa74-7839-4d31-8a04-48a50ee4c015', imgzone.annotation_id
+
+        # preceding/following anchors and text annotation
+        assert_equal nil, zone.preceding_anchor,
+            'first zone should not have a preceding anchor'
+        assert_instance_of TeiAnchor, zone.following_anchor
+        assert_equal 'text-annotation-highlight-start', zone.following_anchor.type
+        assert_equal 'highlight-start-4c69b06c-0888-4265-a891-5fa315f8fccf', zone.following_anchor.id
+        assert_equal '4c69b06c-0888-4265-a891-5fa315f8fccf', zone.following_anchor.annotation_id
+        assert_equal false, zone.highlighted?
+        assert_equal '', zone.annotation_data
+
+        # test a zone that is between highlights
+        # part-way through page 8  (xml:id = rdx_7sr72.ln.idp1066928)
+        hizone = teidoc.pages[7].lines[7]
+        assert_instance_of TeiAnchor, hizone.preceding_anchor
+        assert_equal 'text-annotation-highlight-start', hizone.preceding_anchor.type
+        assert_equal 'text-annotation-highlight-end', hizone.following_anchor.type
+        assert_equal '4c69b06c-0888-4265-a891-5fa315f8fccf', hizone.preceding_anchor.annotation_id
+        assert_equal '4c69b06c-0888-4265-a891-5fa315f8fccf', hizone.following_anchor.annotation_id
+        assert_equal true, hizone.highlighted?
+        annotation_data = hizone.annotation_data
+        assert_match 'class="annotator-hl"', annotation_data
+        assert_match "data-annotation-id=\"#{hizone.annotation_id}\"", annotation_data
+        assert_equal false, hizone.partially_highlighted?
+        assert_equal hizone.text, hizone.annotated_text
+
+        # test a zone that is parially highlighted
+        # part-way through page 8, two before previous (xml:id = rdx_7sr72.ln.idp1060480)
+        partialhizone = teidoc.pages[7].lines[5]
+        assert_equal 2, partialhizone.anchors.size
+        assert_instance_of TeiAnchor, partialhizone.anchors[0]
+        assert_equal true, partialhizone.partially_highlighted?
+        assert_match " XIV.—In", partialhizone.anchors[0].preceding_text
+        assert_match "Search of a Father,", partialhizone.anchors[0].following_text
+        assert_equal '" XIV.—In <span class="annotator-hl" data-annotation-id="%s"> Search of a Father, </span> - 162' % partialhizone.anchors[0].annotation_id,
+            partialhizone.annotated_text
+
+
     end
 
 end

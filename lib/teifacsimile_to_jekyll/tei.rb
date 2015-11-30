@@ -13,12 +13,14 @@ $TEI_NS = {'t' => TEI_NAMESPACE}
 # simple class for more object-oriented and readable access
 # to reading xml
 class XmlObject
+    attr_accessor :el
 
     # Initialize a new XmlObject from parsed xml
     # @param xmlelement [Nokogiri::XML::Document]
     def initialize(xmlelement)
         @el = xmlelement
     end
+
 
     # xpath namespaces; when extending, set namespaces for use in
     # attribute accessor xpaths
@@ -29,6 +31,10 @@ class XmlObject
     # convert xml element to the configured type; currently
     # supports Integer, Float; uses element content, if present
     def convert_el(el, opts = {})
+        if el == nil
+            return nil
+        end
+
         if opts[:as]
             opts[:as].new(el)
         else
@@ -149,6 +155,27 @@ class TeiGraphic < TeiXmlObject
     xml_attr_reader :url, :xpath => '@url'
 end
 
+class TeiAnchor < TeiXmlObject
+    # @!attribute id
+    #   @return [String]
+    xml_attr_reader :id, :xpath => '@xml:id'
+    # @!attribute type
+    #   @return [String]
+    xml_attr_reader :type, :xpath => '@type'
+
+    xml_attr_reader :preceding_text, :xpath => 'preceding-sibling::text()[last()]'
+    xml_attr_reader :following_text, :xpath => 'following-sibling::text()[1]'
+
+    # associated annotation id, for image-annotation-highlight zones
+    def annotation_id
+        if ['text-annotation-highlight-start',
+            'text-annotation-highlight-end'].include? self.type
+            self.id.gsub(/^highlight-(start|end)-/, '')
+        end
+    end
+
+end
+
 # TEI Zone
 class TeiZone < TeiXmlObject
     # @!attribute id
@@ -191,6 +218,22 @@ class TeiZone < TeiXmlObject
     xml_attr_reader :page, :xpath => 'ancestor::t:surface[@type="page"]',
         :as => TeiZone
     # not exactly a zone, but same attributes we care about (type, id, ulx/y, lrx/y)
+
+    # @!attribute preceding_anchor
+    #   @return [TeiAnchor] nearest preceding anchor
+    xml_attr_reader :preceding_anchor,
+        :xpath => '(t:w/preceding::t:anchor[last()]|preceding::t:anchor[last()])',
+        :as => TeiAnchor
+    # @!attribute following_anchor
+    #   @return [TeiAnchor] nearest following anchor
+    xml_attr_reader :following_anchor,
+        :xpath => '(t:w/following::t:anchor[1]|following::t:anchor[1])',
+        :as => TeiAnchor
+
+    # @!attribute anchors
+    #   @return [List#TeiAnchor] anchors inside this zone
+    xml_attr_reader :anchors, :xpath => './/t:anchor', :as => TeiAnchor,
+        :list => true
 
     # zone width
     def width
@@ -301,9 +344,81 @@ class TeiZone < TeiXmlObject
     end
 
     # associated annotation id, for image-annotation-highlight zones
+    # or word zones that are between start and end annotation highlight
+    # anchor markers
     def annotation_id
         if self.type == 'image-annotation-highlight'
             self.id.gsub(/^highlight-/, '')
+        elsif self.highlighted?
+            self.preceding_anchor.annotation_id
+        end
+    end
+
+    # check if the current zone falls between start and end highlight
+    # anchor tags
+    def highlighted?
+        if self.preceding_anchor &&
+           self.preceding_anchor.type == 'text-annotation-highlight-start' &&
+           self.following_anchor &&
+           self.following_anchor.type == 'text-annotation-highlight-end' &&
+           self.preceding_anchor.annotation_id == self.following_anchor.annotation_id
+           # note: checking that ids match might be redundant
+           # todo: what about text included in multiple, overlapping highlights?
+            return true
+        else
+            return false
+        end
+    end
+
+    # if this zone is fully included within a text annotation, return
+    # html attributes needed to associate it with the appropriate annotation
+    def annotation_data
+        if self.highlighted?
+            " class=\"annotator-hl\" data-annotation-id=\"#{self.annotation_id}\""
+        else
+            ''
+        end
+    end
+
+    # check if this zone is partially highlighted
+    # (one or more anchors fall inside the text content of the zone)
+    def partially_highlighted?
+        return self.anchors.size > 0
+    end
+
+    # output text for this zone with span markers for any partial
+    # highlights included within the text
+    def annotated_text
+        if self.partially_highlighted?
+            text = ''
+            # if text is partially highlighted, loop through anchors
+            # and output text relative to them
+            self.anchors.each_with_index do |anchor, index|
+                # leading text before any annotation anchor
+                if index == 0
+                    # if first anchor is an end, create an annotation start
+                    if anchor.type == 'text-annotation-highlight-end'
+                        text << "<span class=\"annotator-hl\" data-annotation-id=\"#{anchor.annotation_id}\">"
+                    end
+                    # text before the first anchor, if any
+                    if anchor.preceding_text
+                        text << anchor.preceding_text
+                    end
+                end
+                # start or end an annotation highlight as appropriate
+                if anchor.type == 'text-annotation-highlight-start'
+                    text << "<span class=\"annotator-hl\" data-annotation-id=\"#{anchor.annotation_id}\">"
+                elsif anchor.type == 'text-annotation-highlight-end'
+                    text << "</span>"
+                end
+                # text after the anchor, if any
+                if anchor.following_text
+                    text << anchor.following_text
+                end
+            end
+            text
+        else
+            self.text
         end
     end
 
@@ -355,11 +470,11 @@ class TeiFacsimilePage < TeiXmlObject
             <%= line.css_style %>>
             <% for zone in line.word_zones %>
             <div class="ocr-zone ocrtext" <%= zone.css_style %>>
-               <span><%= zone.text %></span>
+               <span<%= zone.annotation_data %>><%= zone.annotated_text %></span>
             </div>
             <% end %>
             <% if line.word_zones.empty? %>
-                <span><%= line.text %></span>
+                <span<%= line.annotation_data %>><%= line.annotated_text %></span>
             <% end %>
         </div>
         <% end %>
