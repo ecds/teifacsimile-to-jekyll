@@ -7,6 +7,8 @@ TEI_NAMESPACE = "http://www.tei-c.org/ns/1.0"
 $TEI_NS = {'t' => TEI_NAMESPACE}
 
 
+# TODO: convert :list to :array
+
 class XmlObject
     def initialize(xmlelement)
         @el = xmlelement
@@ -150,7 +152,7 @@ class TeiZone < TeiXmlObject
     # FIXME: should be configured somewhere
     # (we happen to know this is current readux full page size...)
 
-    def zone_style()
+    def css_style()
         # generate html style and data attributes to position
         # the ocr text based on coordinates in the TEI
         # (logic adapted from readux)
@@ -215,7 +217,7 @@ class TeiZone < TeiXmlObject
             attrs += 'style="%s"' % styles.map { |k, v| "#{k}:#{v}"}.join(';')
         end
         unless data.empty?
-            attrs += ' ' + data.map { |k, v | "data-#{k}='#{v}'"}.join(' ')
+            attrs += ' ' + data.map { |k, v | "data-#{k}=\"#{v}\""}.join(' ')
         end
 
         return attrs
@@ -257,9 +259,9 @@ class TeiFacsimilePage < TeiXmlObject
         %{
         <% for line in self.lines %>
         <div class="ocr-line <% if line.word_zones.empty? %>ocrtext<% end %>" <% if line.id %>id="<%= line.id %>"<% end %>
-            <%= line.zone_style %>>
+            <%= line.css_style %>>
             <% for zone in line.word_zones %>
-            <div class="ocr-zone ocrtext" <%= zone.zone_style %>>
+            <div class="ocr-zone ocrtext" <%= zone.css_style %>>
                <span><%= zone.text %></span>
             </div>
             <% end %>
@@ -271,7 +273,7 @@ class TeiFacsimilePage < TeiXmlObject
         <% for img_highlight in self.image_highlight_zones %>
             <span class="annotator-hl image-annotation-highlight"
                 data-annotation-id="<%= img_highlight.annotation_id %>"
-                <%= img_highlight.zone_style %>>
+                <%= img_highlight.css_style %>>
             </span>
         <% end %>
       }
@@ -323,9 +325,6 @@ end
 class TeiFacsimile < TeiXmlObject
     xml_attr_reader :title_statement, :xpath => '//t:teiHeader/t:fileDesc/t:titleStmt',
         :as => TeiTitleStatement
-
-    xml_attr_reader :title, :xpath => '//t:teiHeader/t:fileDesc/t:titleStmt/t:title[@type="full"]/t:title[@type="main"]'
-    xml_attr_reader :subtitle, :xpath => '//t:teiHeader/t:fileDesc/t:titleStmt/t:title[@type="full"]/t:title[@type="sub"]'
 
     xml_attr_reader :source_bibl, :xpath => '//t:teiHeader/t:fileDesc/t:sourceDesc/t:bibl',
         :as => TeiBibl, :hash => true, :hash_key_xpath => '@type'
