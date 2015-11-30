@@ -1,0 +1,10 @@
+#!/usr/bin/env ruby
+
+require 'teifacsimile_to_jekyll'
+
+# based in part on https://gist.github.com/juniorz/1564581
+
+
+TeifacsimileToJekyll.import(ARGV[0])
+
+

@@ -1,0 +1,8 @@
+#!/usr/bin/env ruby
+
+require 'teifacsimile_to_jekyll'
+
+# usage: jekyllimport_teifacsimile teifilename.xml
+
+TeifacsimileToJekyll.import(ARGV[0])
+

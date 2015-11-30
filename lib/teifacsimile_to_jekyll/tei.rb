@@ -1,11 +1,7 @@
 require 'fileutils'
 require 'nokogiri'
-require 'yaml'
 require 'erb'
 
-# based in part on https://gist.github.com/juniorz/1564581
-
-# usage: ruby import.rb annotated-teifacsimile.xml
 
 TEI_NAMESPACE = "http://www.tei-c.org/ns/1.0"
 $TEI_NS = {'t' => TEI_NAMESPACE}
@@ -103,6 +99,7 @@ class TeiGraphic < TeiXmlObject
     xml_attr_reader :rend, :xpath => '@rend'
     xml_attr_reader :url, :xpath => '@url'
 end
+
 
 class TeiZone < TeiXmlObject
     xml_attr_reader :id, :xpath => '@xml:id'
@@ -232,6 +229,7 @@ class TeiZone < TeiXmlObject
 
 end
 
+
 class TeiFacsimilePage < TeiXmlObject
     xml_attr_reader :id, :xpath => '@xml:id'
     xml_attr_reader :n, :xpath => '@n'
@@ -255,6 +253,7 @@ class TeiFacsimilePage < TeiXmlObject
     def template()
         # template to position ocr text over the image
         # - logic adapted from readux
+        # TODO: pull template out into a separate file?
         %{
         <% for line in self.lines %>
         <div class="ocr-line <% if line.word_zones.empty? %>ocrtext<% end %>" <% if line.id %>id="<%= line.id %>"<% end %>
@@ -339,132 +338,9 @@ class TeiFacsimile < TeiXmlObject
 
 end
 
-teixml = File.open(ARGV[0]) { |f| Nokogiri::XML(f) }
-teidoc = TeiFacsimile.new(teixml)
 
-$volume_page_dir = '_volume_pages'
-$annotation_dir = '_annotations'
-
-
-def output_page(teipage)
-    puts "Page #{teipage.n}"
-    path = File.join($volume_page_dir, "%04d.html" % teipage.n.to_i)
-    # retrieve page graphic urls by type for inclusion in front matter
-    images = {}  # hash of image urls by rend attribute
-    teipage.images.each { |img| images[img.rend] = img.url }
-    # construct page front matter
-    front_matter = {
-        'title'=> 'Page %s' % teipage.n,
-        'page_order'=> teipage.n.to_i,
-        'tei_id' => teipage.id,
-        'annotation_count' => teipage.annotation_count,
-        'images' => images
-    }
-
-    File.open(path, 'w') do |file|
-        # write out front matter as yaml
-        file.write front_matter.to_yaml
-        file.write  "\n---"
-        # todo: unique page content that can't be handled by template
-        # (should be primarily tei text and annotation references)
-        # file.write "\n<img src='#{images["page"]}' />"
-        file.write teipage.html()
-    end
-end
-
-def output_annotation(teinote)
-    puts "Annotation #{teinote.id}"
-    path = File.join($annotation_dir, "%s.md" % teinote.id)
-    front_matter = {
-        'annotation_id' => teinote.annotation_id,
-        'author' => teinote.author,
-        'tei_target' => teinote.target,
-        'annotated_page' => teinote.annotated_page.id,
-        'target' => teinote.start_target
-    }
-    if teinote.range_target?
-        front_matter['end_target'] = teinote.end_target
-    end
-
-    File.open(path, 'w') do |file|
-        # write out front matter as yaml
-        file.write front_matter.to_yaml
-        file.write  "\n---\n"
-        # annotation content
-        file.write teinote.markdown
-
-    end
-
-end
-
-# generate a volume page document for every facsimile page in the TEI
-puts "** Writing volume pages"
-FileUtils.rm_rf($volume_page_dir)
-Dir.mkdir($volume_page_dir) unless File.directory?($volume_page_dir)
-teidoc.pages.each do |teipage|
-    output_page(teipage)
-end
-
-# generate an annotation document for every annotation in the TEI
-puts "** Writing annotations"
-FileUtils.rm_rf($annotation_dir)
-Dir.mkdir($annotation_dir) unless File.directory?($annotation_dir)
-
-teidoc.annotations.each do |teinote|
-    output_annotation(teinote)
-end
-
-
-puts '** Updating site config'
-if File.exist?('_config.yml')
-    siteconfig = YAML.load_file('_config.yml')
-
-    # set site title and subtitle from the tei
-    siteconfig['title'] = teidoc.title_statement.title
-    siteconfig['tagline'] = teidoc.title_statement.subtitle
-
-    # placeholder description for author to edit (todo: include annotation author name here?)
-    siteconfig['description'] = 'An annotated digital edition created with <a href="http://readux.library.emory.edu/">Readux</a>'
-
-    # add urls to readux volume and pdf
-    siteconfig['readux_url'] = teidoc.source_bibl['digital'].references['digital-edition'].target
-    siteconfig['readux_pdf_url'] = teidoc.source_bibl['digital'].references['pdf'].target
-
-    # add original publication information
-    original = teidoc.source_bibl['original']
-    pubinfo = {'title' => original.title, 'author' => original.author,
-        'date' => original.date}
-
-    # configure collections specific to tei facsimile + annotation data
-    siteconfig.merge!({
-        'publication_info' => pubinfo,
-        'collections' => {
-            # NOTE: annotations *must* come first, so content can
-            # be rendered for display in volume pages templates
-            'annotations' => {
-                'output' => false
-            },
-            'volume_pages' => {
-                'output' => true,
-                'permalink' => '/pages/:path/'
-            },
-        },
-        'defaults' => {
-           'scope' => {
-                'path' => '',
-                'type' => 'volume_pages',
-            },
-            'values' => {
-                'layout' => 'volume_pages'
-            }
-          }
-    })
-    # TODO:
-    # - author information from resp statement?
-
-    File.open('_config.yml', 'w') do |file|
-        # write out updated site config
-        file.write siteconfig.to_yaml
-    end
+def load_tei(filename)
+    teixml = File.open(filename) { |f| Nokogiri::XML(f) }
+    TeiFacsimile.new(teixml)
 end
 
