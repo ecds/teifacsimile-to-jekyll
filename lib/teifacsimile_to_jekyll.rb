@@ -4,12 +4,21 @@ require 'yaml'
 
 # jekyll import logic based in part on https://gist.github.com/juniorz/1564581
 
+
+# functionality for generating jekyll content from a tei facsimile
+# document with annotations
 class TeifacsimileToJekyll
 
+    # jekyll volume pages directory
     @volume_page_dir = '_volume_pages'
+    # jekyll annotation directory
     @annotation_dir = '_annotations'
+    # jekyll config file
     @configfile = '_config.yml'
 
+    # Generate a jekyll collection volume page with appropriate yaml
+    # metadata from a TEI facsimile page and annotations
+    # @param teipage [TeiPage]
     def self.output_page(teipage)
         puts "Page #{teipage.n}"
         path = File.join(@volume_page_dir, "%04d.html" % teipage.n.to_i)
@@ -36,6 +45,9 @@ class TeifacsimileToJekyll
         end
     end
 
+    # Generate a jekyll collection annotation with appropriate yaml
+    # metadata from a TEI Note
+    # @param teinote [TeiNote]
     def self.output_annotation(teinote)
         puts "Annotation #{teinote.annotation_id}"
         path = File.join(@annotation_dir, "%s.md" % teinote.id)
@@ -61,6 +73,11 @@ class TeifacsimileToJekyll
 
     end
 
+    # Update jekyll site config with values from the TEI document
+    # and necessary configurations for setting up jekyll collections
+    # of volume pages and annotation content.
+    # @param teidoc [TeiFacsimile]
+    # @param configfile [String] path to existing config file to be updated
     def self.upate_site_config(teidoc, configfile)
         siteconfig = YAML.load_file(configfile)
 
@@ -113,6 +130,8 @@ class TeifacsimileToJekyll
         end
     end
 
+    # Import TEI facsimile page and annotation content into a jekyll site
+    # @param filename [String] TEI filename to be imported
     def self.import(filename)
         teidoc = load_tei(filename)
 
