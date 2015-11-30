@@ -1,25 +1,33 @@
 require 'fileutils'
 require 'nokogiri'
-require 'yaml'
 require 'erb'
 
-# based in part on https://gist.github.com/juniorz/1564581
 
-# usage: ruby import.rb annotated-teifacsimile.xml
-
+# TEI namespace
 TEI_NAMESPACE = "http://www.tei-c.org/ns/1.0"
 $TEI_NS = {'t' => TEI_NAMESPACE}
 
 
+# TODO: convert :list option to :array
+
+# simple class for more object-oriented and readable access
+# to reading xml
 class XmlObject
+
+    # Initialize a new XmlObject from parsed xml
+    # @param xmlelement [Nokogiri::XML::Document]
     def initialize(xmlelement)
         @el = xmlelement
     end
 
+    # xpath namespaces; when extending, set namespaces for use in
+    # attribute accessor xpaths
     def xpath_ns
         {}
     end
 
+    # convert xml element to the configured type; currently
+    # supports Integer, Float; uses element content, if present
     def convert_el(el, opts = {})
         if opts[:as]
             opts[:as].new(el)
@@ -40,6 +48,16 @@ class XmlObject
         end
     end
 
+    # xml attribute reader for simple, object-oriented access to xml data
+    # @param attr_name property name to be used for access
+    # @param opts [Hash] options for configuring the property
+    # @option opts [String] :xpath xpath for selecting content from the document
+    # @option opts [Boolean] :list set True for a list of results
+    # @option opts [Boolean] :hash set True for Hash of results; requires
+    #    :hash_key_xpath
+    # @option opts [String] :hash_key_xpath relative xpath for determining
+    #    hash keys, when hash return is configured
+    # @option opts [Type] :type conversion type, currently supports Integer, Float
     def self.xml_attr_reader(attr_name, opts = {})
         attr_name = attr_name.to_s
         define_method(attr_name) do
@@ -74,64 +92,117 @@ class XmlObject
 
 end
 
+# Base TEI xmlobject class with TEI namespace defined
 class TeiXmlObject < XmlObject
     def xpath_ns
         $TEI_NS
     end
 end
 
+# TEI title statement
 class TeiTitleStatement < TeiXmlObject
+    # @!attribute title
+    #   @return [String] main title
     xml_attr_reader :title, :xpath => './/t:title[@type="main"]'
+    # @!attribute subtitle
+    #   @return [String] sub title
     xml_attr_reader :subtitle, :xpath => './/t:title[@type="sub"]'
 end
 
+# TEI reference
 class TeiRef < TeiXmlObject
+    # @!attribute type
+    #   @return [String]
     xml_attr_reader :type, :xpath => '@type'
+    # @!attribute target
+    #   @return [String] target url
     xml_attr_reader :target, :xpath => '@target'
 end
 
+# Bibliographic source
 class TeiBibl < TeiXmlObject
+    # @!attribute type
+    #   @return [String]
     xml_attr_reader :type, :xpath => '@type'
+    # @!attribute title
+    #   @return [String]
     xml_attr_reader :title, :xpath => 't:title'
+    # @!attribute date
+    #   @return [String]
     xml_attr_reader :date, :xpath => 't:date'
+    # @!attribute author
+    #   @return [String]
     xml_attr_reader :author, :xpath => 't:author'
+    # @!attribute references
+    #   @return [Hash] references, keyed on type
     xml_attr_reader :references, :xpath => 't:ref', :as => TeiRef, :hash => true,
         :hash_key_xpath => '@type'
 end
 
+# Graphic element
 class TeiGraphic < TeiXmlObject
+    # @!attribute rend
+    #   @return [String] rend attribute
     xml_attr_reader :rend, :xpath => '@rend'
+    # @!attribute url
+    #   @return [String]
     xml_attr_reader :url, :xpath => '@url'
 end
 
+# TEI Zone
 class TeiZone < TeiXmlObject
+    # @!attribute id
+    #   @return [String]
     xml_attr_reader :id, :xpath => '@xml:id'
+    # @!attribute n
+    #   @return [String]
     xml_attr_reader :n, :xpath => '@n'
+    # @!attribute type
+    #   @return [String]
     xml_attr_reader :type, :xpath => '@type'
+    # @!attribute ulx
+    #   @return [Float] upper left x coordinate
     xml_attr_reader :ulx, :xpath => '@ulx', :type => Float
+    # @!attribute uly
+    #   @return [Float] upper left y coordinate
     xml_attr_reader :uly, :xpath => '@uly', :type => Float
+    # @!attribute lrx
+    #   @return [Float] lower right x coordinate
     xml_attr_reader :lrx, :xpath => '@lrx', :type => Float
+    # @!attribute lry
+    #   @return [Float] lower right y coordinate
     xml_attr_reader :lry, :xpath => '@lry', :type => Float
+    # @!attribute href
+    #   @return [String]
     xml_attr_reader :href, :xpath => '@xlink:href'  # maybe not needed?
+    # @!attribute text
+    #   @return [String] text content
     xml_attr_reader :text, :xpath => 't:line|t:w'
+    # @!attribute word_zones
+    #   @return [Array#TeiZone] list of word zones within this zone
     xml_attr_reader :word_zones, :xpath => './/t:zone[@type="string"]',
         :as => TeiZone, :list => true
 
-    #: nearest ancestor zone
+    # @!attribute parent
+    #   @return [TeiZone] immediate ancestor zone
     xml_attr_reader :parent, :xpath => 'ancestor::t:zone[1]', :as => TeiZone
-    #: containing page
+    # @!attribute page
+    #   @return [TeiZone] parent page as TeiZone
     xml_attr_reader :page, :xpath => 'ancestor::t:surface[@type="page"]',
         :as => TeiZone
-    # # not exactly a zone, but same attributes we care about (type, id, ulx/y, lrx/y)
+    # not exactly a zone, but same attributes we care about (type, id, ulx/y, lrx/y)
 
+    # zone width
     def width
         self.lrx - self.ulx
     end
 
+    # zone height
     def height
         self.lry - self.uly
     end
 
+    # average height
     def avg_height
         '''Calculated average height of word zones in the current zone
         (i.e. in a text line)'''
@@ -144,25 +215,30 @@ class TeiZone < TeiXmlObject
         end
     end
 
+    # size of the longer edge of this zone
     def long_edge
         # return the size of the longer edge of this zone
         [self.width, self.height].max
     end
 
-    SINGLE_PAGE_SIZE = 1000
+    # single page size
     # FIXME: should be configured somewhere
     # (we happen to know this is current readux full page size...)
+    SINGLE_PAGE_SIZE = 1000
 
-    def zone_style()
-        # generate html style and data attributes to position
-        # the ocr text based on coordinates in the TEI
-        # (logic adapted from readux)
+
+    # generate html style and data attributes to position
+    # the ocr text based on coordinates in the TEI
+    # (logic adapted from readux)
+    def css_style()
         styles = {}
         data = {}
         # determine scale from original page size to current display size,
         # for non-relative styles (i.e. font sizes)
         scale = SINGLE_PAGE_SIZE.to_f / self.page.long_edge.to_f
 
+        # utility method for generating percents for display in
+        # css styles
         def percent(a, b)
             # a as percentage of b
             # ensure both are cast to float, divide, then multiply by 100
@@ -218,12 +294,13 @@ class TeiZone < TeiXmlObject
             attrs += 'style="%s"' % styles.map { |k, v| "#{k}:#{v}"}.join(';')
         end
         unless data.empty?
-            attrs += ' ' + data.map { |k, v | "data-#{k}='#{v}'"}.join(' ')
+            attrs += ' ' + data.map { |k, v | "data-#{k}=\"#{v}\""}.join(' ')
         end
 
         return attrs
     end
 
+    # associated annotation id, for image-annotation-highlight zones
     def annotation_id
         if self.type == 'image-annotation-highlight'
             self.id.gsub(/^highlight-/, '')
@@ -232,35 +309,52 @@ class TeiZone < TeiXmlObject
 
 end
 
+# Single page of a TEI facsimile
 class TeiFacsimilePage < TeiXmlObject
+    # @!attribute id
+    #   @return [String]
     xml_attr_reader :id, :xpath => '@xml:id'
+    # @!attribute n
+    #   @return [String]
     xml_attr_reader :n, :xpath => '@n'
-
+    # @!attribute images
+    #   @return [List#TeiGraphic]
     xml_attr_reader :images, :xpath => 't:graphic', :list => true,
         :as => TeiGraphic
 
+    # @!attribute annotation_count
+    #   @return [Integer] number of annotations on this page
     xml_attr_reader :annotation_count, :type => Integer,
         :xpath => 'count(.//t:anchor[@type="text-annotation-highlight-start"]
             |.//t:zone[@type="image-annotation-highlight"])'
 
+    # @!attribute lines
+    #   @return [List#TeiZone] text line zones
     xml_attr_reader :lines, :xpath => './/t:zone[@type="textLine" or @type="line"]',
         :as => TeiZone, :list => true
 
+    # @!attribute word_zones
+    #   @return [List#TeiZone] text word zones
     xml_attr_reader :word_zones, :xpath => './/t:zone[@type="string"]',
         :as => TeiZone, :list => true
 
+    # @!attribute image_highlight_zones
+    #   @return [List#TeiZone] zones for image annotation highlights
     xml_attr_reader :image_highlight_zones, :xpath => 't:zone[@type="image-annotation-highlight"]',
         :as => TeiZone, :list => true
 
+    # template to position ocr text over the image
+    # (logic adapted from readux)
     def template()
         # template to position ocr text over the image
         # - logic adapted from readux
+        # TODO: pull template out into a separate file?
         %{
         <% for line in self.lines %>
         <div class="ocr-line <% if line.word_zones.empty? %>ocrtext<% end %>" <% if line.id %>id="<%= line.id %>"<% end %>
-            <%= line.zone_style %>>
+            <%= line.css_style %>>
             <% for zone in line.word_zones %>
-            <div class="ocr-zone ocrtext" <%= zone.zone_style %>>
+            <div class="ocr-zone ocrtext" <%= zone.css_style %>>
                <span><%= zone.text %></span>
             </div>
             <% end %>
@@ -272,29 +366,44 @@ class TeiFacsimilePage < TeiXmlObject
         <% for img_highlight in self.image_highlight_zones %>
             <span class="annotator-hl image-annotation-highlight"
                 data-annotation-id="<%= img_highlight.annotation_id %>"
-                <%= img_highlight.zone_style %>>
+                <%= img_highlight.css_style %>>
             </span>
         <% end %>
       }
     end
 
+    # html for page text content using the #template
+    # (logic adapted from readux)
     def html()
         return ERB.new(self.template()).result(binding)
     end
 
 end
 
+# TEI note
 class TeiNote < TeiXmlObject
     attr_accessor :start_target, :end_target
+    # @!attribute id
+    #   @return [String]
     xml_attr_reader :id, :xpath => '@xml:id'
+    # @!attribute author
+    #   @return [String]
     xml_attr_reader :author, :xpath => '@resp'
+    # @!attribute target
+    #   @return [String]
     xml_attr_reader :target, :xpath => '@target'
+    # @!attribute markdown
+    #   @return [String] content of the note in markdown format
     xml_attr_reader :markdown, :xpath => './/t:code[@lang="markdown"]'
 
+    # is this note a range target?
+    #   @return [Boolean]
     def range_target?
         return self.target.start_with?('#range')
     end
 
+    # page annotated by this note
+    #   @return [TeiFacsimilePage]
     def annotated_page
         # find the page that is annotated by this note
         if self.range_target?
@@ -315,156 +424,42 @@ class TeiNote < TeiXmlObject
         return @annotated_page
     end
 
+    # annotation id
     def annotation_id
         self.id.gsub(/^annotation-/, '')
     end
 
 end
 
+# TEI facsimile document
 class TeiFacsimile < TeiXmlObject
+    # @!attribute title_statement
+    #   @return [TeiTitleStatement]
     xml_attr_reader :title_statement, :xpath => '//t:teiHeader/t:fileDesc/t:titleStmt',
         :as => TeiTitleStatement
 
-    xml_attr_reader :title, :xpath => '//t:teiHeader/t:fileDesc/t:titleStmt/t:title[@type="full"]/t:title[@type="main"]'
-    xml_attr_reader :subtitle, :xpath => '//t:teiHeader/t:fileDesc/t:titleStmt/t:title[@type="full"]/t:title[@type="sub"]'
-
+    # @!attribute source_bibl
+    #   @return [Hash#TeiBibl] hash keyed on type attribute
     xml_attr_reader :source_bibl, :xpath => '//t:teiHeader/t:fileDesc/t:sourceDesc/t:bibl',
         :as => TeiBibl, :hash => true, :hash_key_xpath => '@type'
 
+    # @!attribute pages
+    #   @return [List#TeiFacsimilePage]
     xml_attr_reader :pages, :xpath => '//t:facsimile/t:surface[@type="page"]',
         :as => TeiFacsimilePage, :list => true
 
+    # @!attribute annotations
+    #   @return [List#TeiNote]
     xml_attr_reader :annotations, :xpath => '//t:note[@type="annotation"]',
         :as => TeiNote, :list => true
 
 end
 
-teixml = File.open(ARGV[0]) { |f| Nokogiri::XML(f) }
-teidoc = TeiFacsimile.new(teixml)
-
-$volume_page_dir = '_volume_pages'
-$annotation_dir = '_annotations'
-
-
-def output_page(teipage)
-    puts "Page #{teipage.n}"
-    path = File.join($volume_page_dir, "%04d.html" % teipage.n.to_i)
-    # retrieve page graphic urls by type for inclusion in front matter
-    images = {}  # hash of image urls by rend attribute
-    teipage.images.each { |img| images[img.rend] = img.url }
-    # construct page front matter
-    front_matter = {
-        'title'=> 'Page %s' % teipage.n,
-        'page_order'=> teipage.n.to_i,
-        'tei_id' => teipage.id,
-        'annotation_count' => teipage.annotation_count,
-        'images' => images
-    }
-
-    File.open(path, 'w') do |file|
-        # write out front matter as yaml
-        file.write front_matter.to_yaml
-        file.write  "\n---"
-        # todo: unique page content that can't be handled by template
-        # (should be primarily tei text and annotation references)
-        # file.write "\n<img src='#{images["page"]}' />"
-        file.write teipage.html()
-    end
-end
-
-def output_annotation(teinote)
-    puts "Annotation #{teinote.id}"
-    path = File.join($annotation_dir, "%s.md" % teinote.id)
-    front_matter = {
-        'annotation_id' => teinote.annotation_id,
-        'author' => teinote.author,
-        'tei_target' => teinote.target,
-        'annotated_page' => teinote.annotated_page.id,
-        'target' => teinote.start_target
-    }
-    if teinote.range_target?
-        front_matter['end_target'] = teinote.end_target
-    end
-
-    File.open(path, 'w') do |file|
-        # write out front matter as yaml
-        file.write front_matter.to_yaml
-        file.write  "\n---\n"
-        # annotation content
-        file.write teinote.markdown
-
-    end
-
-end
-
-# generate a volume page document for every facsimile page in the TEI
-puts "** Writing volume pages"
-FileUtils.rm_rf($volume_page_dir)
-Dir.mkdir($volume_page_dir) unless File.directory?($volume_page_dir)
-teidoc.pages.each do |teipage|
-    output_page(teipage)
-end
-
-# generate an annotation document for every annotation in the TEI
-puts "** Writing annotations"
-FileUtils.rm_rf($annotation_dir)
-Dir.mkdir($annotation_dir) unless File.directory?($annotation_dir)
-
-teidoc.annotations.each do |teinote|
-    output_annotation(teinote)
-end
-
-
-puts '** Updating site config'
-if File.exist?('_config.yml')
-    siteconfig = YAML.load_file('_config.yml')
-
-    # set site title and subtitle from the tei
-    siteconfig['title'] = teidoc.title_statement.title
-    siteconfig['tagline'] = teidoc.title_statement.subtitle
-
-    # placeholder description for author to edit (todo: include annotation author name here?)
-    siteconfig['description'] = 'An annotated digital edition created with <a href="http://readux.library.emory.edu/">Readux</a>'
-
-    # add urls to readux volume and pdf
-    siteconfig['readux_url'] = teidoc.source_bibl['digital'].references['digital-edition'].target
-    siteconfig['readux_pdf_url'] = teidoc.source_bibl['digital'].references['pdf'].target
-
-    # add original publication information
-    original = teidoc.source_bibl['original']
-    pubinfo = {'title' => original.title, 'author' => original.author,
-        'date' => original.date}
-
-    # configure collections specific to tei facsimile + annotation data
-    siteconfig.merge!({
-        'publication_info' => pubinfo,
-        'collections' => {
-            # NOTE: annotations *must* come first, so content can
-            # be rendered for display in volume pages templates
-            'annotations' => {
-                'output' => false
-            },
-            'volume_pages' => {
-                'output' => true,
-                'permalink' => '/pages/:path/'
-            },
-        },
-        'defaults' => {
-           'scope' => {
-                'path' => '',
-                'type' => 'volume_pages',
-            },
-            'values' => {
-                'layout' => 'volume_pages'
-            }
-          }
-    })
-    # TODO:
-    # - author information from resp statement?
-
-    File.open('_config.yml', 'w') do |file|
-        # write out updated site config
-        file.write siteconfig.to_yaml
-    end
+# Utility method to load a file as TeiFacsimile
+# @param filename
+# @return [TeiFacsimile]
+def load_tei(filename)
+    teixml = File.open(filename) { |f| Nokogiri::XML(f) }
+    TeiFacsimile.new(teixml)
 end
 
