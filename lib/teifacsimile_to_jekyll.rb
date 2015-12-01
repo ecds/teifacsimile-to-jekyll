@@ -19,8 +19,8 @@ class TeifacsimileToJekyll
     # Generate a jekyll collection volume page with appropriate yaml
     # metadata from a TEI facsimile page and annotations
     # @param teipage [TeiPage]
-    def self.output_page(teipage)
-        puts "Page #{teipage.n}"
+    def self.output_page(teipage, opts={})
+        puts "Page #{teipage.n}" unless opts[:quiet]
         path = File.join(@volume_page_dir, "%04d.html" % teipage.n.to_i)
         # retrieve page graphic urls by type for inclusion in front matter
         images = {}  # hash of image urls by rend attribute
@@ -48,8 +48,8 @@ class TeifacsimileToJekyll
     # Generate a jekyll collection annotation with appropriate yaml
     # metadata from a TEI Note
     # @param teinote [TeiNote]
-    def self.output_annotation(teinote)
-        puts "Annotation #{teinote.annotation_id}"
+    def self.output_annotation(teinote, opts={})
+        puts "Annotation #{teinote.annotation_id}" unless opts[:quiet]
         path = File.join(@annotation_dir, "%s.md" % teinote.id)
         front_matter = {
             'annotation_id' => teinote.annotation_id,
@@ -136,27 +136,27 @@ class TeifacsimileToJekyll
 
     # Import TEI facsimile page and annotation content into a jekyll site
     # @param filename [String] TEI filename to be imported
-    def self.import(filename)
+    def self.import(filename, opts={})
         teidoc = load_tei(filename)
 
         # generate a volume page document for every facsimile page in the TEI
-        puts "** Writing volume pages"
+        puts "** Writing volume pages" unless opts[:quiet]
         FileUtils.rm_rf(@volume_page_dir)
         Dir.mkdir(@volume_page_dir) unless File.directory?(@volume_page_dir)
         teidoc.pages.each do |teipage|
-            output_page(teipage)
+            output_page(teipage, **opts)
         end
 
         # generate an annotation document for every annotation in the TEI
-        puts "** Writing annotations"
+        puts "** Writing annotations" unless opts[:quiet]
         FileUtils.rm_rf(@annotation_dir)
         Dir.mkdir(@annotation_dir) unless File.directory?(@annotation_dir)
         teidoc.annotations.each do |teinote|
-            output_annotation(teinote)
+            output_annotation(teinote, **opts)
         end
 
         if File.exist?(@configfile)
-            puts '** Updating site config'
+            puts '** Updating site config' unless opts[:quiet]
             upate_site_config(teidoc, @configfile)
         end
 
