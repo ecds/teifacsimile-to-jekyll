@@ -437,6 +437,11 @@ class TeiFacsimilePage < TeiXmlObject
     xml_attr_reader :images, :xpath => 't:graphic', :list => true,
         :as => TeiGraphic
 
+    # @!attribute images_by_type
+    #   @return [Hash#TeiGraphic] images as a hash, keyed on rend attribute
+    xml_attr_reader :images_by_type, :xpath => 't:graphic', :hash => true,
+        :as => TeiGraphic, :hash_key_xpath => '@rend'
+
     # @!attribute annotation_count
     #   @return [Integer] number of annotations on this page
     xml_attr_reader :annotation_count, :type => Integer,

@@ -78,6 +78,14 @@ class TeiTest < Minitest::Unit::TestCase
         assert_equal 'small-thumbnail', page.images[0].rend
         assert_equal 'http://readux.library.emory.edu/books/emory:7sr72/pages/emory:gmrpr/mini-thumbnail/',
             page.images[0].url
+
+        assert_instance_of Hash, page.images_by_type
+        assert_instance_of TeiGraphic, page.images_by_type['page']
+        assert_equal 5, page.images_by_type.size,
+            'expected 5 images for page 1'
+        assert_equal 'http://readux.library.emory.edu/books/emory:7sr72/pages/emory:gmrpr/mini-thumbnail/',
+            page.images_by_type['small-thumbnail'].url
+
         assert_equal 4, page.annotation_count,
             'expected annotation count of 4 for page 1'
         assert_instance_of Array, page.lines

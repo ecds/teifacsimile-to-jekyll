@@ -92,6 +92,10 @@ class TeifacsimileToJekyll
         siteconfig['readux_url'] = teidoc.source_bibl['digital'].references['digital-edition'].target
         siteconfig['readux_pdf_url'] = teidoc.source_bibl['digital'].references['pdf'].target
 
+        # use first page (which should be the cover) as a default splash
+        # image for the home page
+        siteconfig['homepage_image'] = teidoc.pages[0].images_by_type['page']
+
         # add original publication information
         original = teidoc.source_bibl['original']
         pubinfo = {'title' => original.title, 'author' => original.author,
