@@ -94,7 +94,7 @@ class TeifacsimileToJekyll
 
         # use first page (which should be the cover) as a default splash
         # image for the home page
-        siteconfig['homepage_image'] = teidoc.pages[0].images_by_type['page']
+        siteconfig['homepage_image'] = teidoc.pages[0].images_by_type['page'].url
 
         # add original publication information
         original = teidoc.source_bibl['original']
