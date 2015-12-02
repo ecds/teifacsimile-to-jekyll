@@ -512,9 +512,20 @@ class TeiNote < TeiXmlObject
     # @!attribute target
     #   @return [String]
     xml_attr_reader :target, :xpath => '@target'
+    # @!attribute ana
+    #   @return [String]
+    xml_attr_reader :ana, :xpath => '@ana'
     # @!attribute markdown
     #   @return [String] content of the note in markdown format
     xml_attr_reader :markdown, :xpath => './/t:code[@lang="markdown"]'
+
+    def tags
+        if self.ana
+            self.ana.split(' ').map { |s| s.gsub(/^#/, '')}
+        else
+            []
+        end
+    end
 
     # is this note a range target?
     #   @return [Boolean]
@@ -551,6 +562,16 @@ class TeiNote < TeiXmlObject
 
 end
 
+# TeiInterp element within an interpGrp
+class TeiInterp < TeiXmlObject
+    # @!attribute id
+    #   @return [String]
+    xml_attr_reader :id, :xpath => '@xml:id'
+    # @!attribute value
+    #   @return [String]
+    xml_attr_reader :value, :xpath => '@value'
+end
+
 # TEI facsimile document
 class TeiFacsimile < TeiXmlObject
     # @!attribute title_statement
@@ -572,6 +593,11 @@ class TeiFacsimile < TeiXmlObject
     #   @return [List#TeiNote]
     xml_attr_reader :annotations, :xpath => '//t:note[@type="annotation"]',
         :as => TeiNote, :list => true
+
+    # @!attribute tags
+    #   @return [Hash#TeiInterp]
+    xml_attr_reader :tags, :xpath => '//t:back/t:interpGrp[@type="tags"]/t:interp',
+        :as => TeiInterp, :hash => true, :hash_key_xpath => '@xml:id'
 
 end
 

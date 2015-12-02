@@ -15,6 +15,12 @@ class TeifacsimileToJekyll
     @annotation_dir = '_annotations'
     # jekyll config file
     @configfile = '_config.yml'
+    # jekyll data dir
+    @data_dir = '_data'
+    # tags data file
+    @tagfile = File.join(@data_dir, 'tags.yml')
+    # directory where tag stub pages should be created
+    @tag_dir = 'tags'
 
     # Generate a jekyll collection volume page with appropriate yaml
     # metadata from a TEI facsimile page and annotations
@@ -56,8 +62,12 @@ class TeifacsimileToJekyll
             'author' => teinote.author,
             'tei_target' => teinote.target,
             'annotated_page' => teinote.annotated_page.id,
-            'target' => teinote.start_target
+            'target' => teinote.start_target,
         }
+        if teinote.tags
+            front_matter['tags'] = teinote.tags
+        end
+
         if teinote.range_target?
             front_matter['end_target'] = teinote.end_target
         end
@@ -69,6 +79,38 @@ class TeifacsimileToJekyll
             # annotation content
             file.write teinote.markdown
 
+        end
+
+    end
+
+    def self.output_tags(tags, opts={})
+        puts "Generating tags" unless opts[:quiet]
+        # create data dir if not already present
+        Dir.mkdir(@data_dir) unless File.directory?(@data_dir)
+        tag_data = {}
+        # create a jekyll data file with tag data
+        # structure tag data for lookup by slug, with a name attribute
+        tags.each do |tag, interp|
+            tag_data[tag] = {'name' => interp.value}
+        end
+        puts tag_data.to_yaml
+
+        File.open(@tagfile, 'w') do |file|
+            file.write tag_data.to_yaml
+        end
+
+        # Create a tag stub file for each tag
+        # create tag dir if not already present
+        Dir.mkdir(@tag_dir) unless File.directory?(@tag_dir)
+        tags.each do |tag, interp|
+            @tagfile =
+            File.open(File.join(@tag_dir, "#{tag}.md"), 'w') do |file|
+                front_matter = {
+                    'layout' => 'annotation_by_tag',
+                    'tag' => tag
+                }
+                file.write front_matter.to_yaml
+            end
         end
 
     end
@@ -141,11 +183,11 @@ class TeifacsimileToJekyll
 
         # generate a volume page document for every facsimile page in the TEI
         puts "** Writing volume pages" unless opts[:quiet]
-        FileUtils.rm_rf(@volume_page_dir)
-        Dir.mkdir(@volume_page_dir) unless File.directory?(@volume_page_dir)
-        teidoc.pages.each do |teipage|
-            output_page(teipage, **opts)
-        end
+        # FileUtils.rm_rf(@volume_page_dir)
+        # Dir.mkdir(@volume_page_dir) unless File.directory?(@volume_page_dir)
+        # teidoc.pages.each do |teipage|
+        #     output_page(teipage, **opts)
+        # end
 
         # generate an annotation document for every annotation in the TEI
         puts "** Writing annotations" unless opts[:quiet]
@@ -154,6 +196,8 @@ class TeifacsimileToJekyll
         teidoc.annotations.each do |teinote|
             output_annotation(teinote, **opts)
         end
+
+        output_tags(teidoc.tags, **opts)
 
         if File.exist?(@configfile)
             puts '** Updating site config' unless opts[:quiet]

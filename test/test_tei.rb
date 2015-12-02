@@ -39,6 +39,12 @@ class TeiTest < Minitest::Unit::TestCase
             'pages should be loaded as instances of TeiFacsimilePage'
         assert_instance_of TeiNote, teidoc.annotations[0],
             'annotations should be loaded as instances of TeiNote'
+
+        # interpgrp / tags
+        assert_instance_of Hash, teidoc.tags
+        assert_instance_of TeiInterp, teidoc.tags['test']
+        assert_equal teidoc.tags['whee'].value, 'whee!'
+
     end
 
     def test_tei_titlestatement
@@ -121,8 +127,17 @@ class TeiTest < Minitest::Unit::TestCase
             'range_target? should return false for image highlight annotation'
         assert_instance_of TeiFacsimilePage, note.annotated_page
         assert_equal 'rdx_7sr72.p.idp356752', note.annotated_page.id
+        assert_equal [], note.tags
 
         # TODO: test ranged annotation also
+
+        # annotation with tags
+        note = teidoc.annotations[11]
+        tags = note.tags
+        assert_instance_of Array, tags
+        assert_includes tags, 'whee'
+        assert_includes tags, 'formatting'
+        assert_includes tags, 'test'
     end
 
     def test_teizone
