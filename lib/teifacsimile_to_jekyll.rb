@@ -110,6 +110,7 @@ class TeifacsimileToJekyll
                     'tag' => tag
                 }
                 file.write front_matter.to_yaml
+                file.write  "\n---\n"
             end
         end
 
