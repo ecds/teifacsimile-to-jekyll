@@ -1,5 +1,6 @@
 require 'fileutils'
 require 'yaml'
+require 'fastimage'
 
 
 # jekyll import logic based in part on https://gist.github.com/juniorz/1564581
@@ -142,6 +143,13 @@ class TeifacsimileToJekyll
         # use first page (which should be the cover) as a default splash
         # image for the home page
         siteconfig['homepage_image'] = teidoc.pages[0].images_by_type['page'].url
+
+        # add image dimensions to config so that thumbnail display can be tailored
+        # to the current volume page size
+        thumbnail_width, thumbnail_height = FastImage.size(teidoc.pages[0].images_by_type['thumbnail'].url)
+        siteconfig['image_size'] = {
+            'thumbnail' => {'width' => thumbnail_width, 'height' => thumbnail_height}
+        }
 
         # add original publication information
         original = teidoc.source_bibl['original']

@@ -12,5 +12,6 @@ Gem::Specification.new do |s|
     # 'http://rubygems.org/gems/hola'
   s.license       = 'Apache 2'
   s.add_runtime_dependency "nokogiri"
+  s.add_runtime_dependency "fastimage"
   s.add_development_dependency "rake"
 end
