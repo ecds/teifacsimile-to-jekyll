@@ -93,7 +93,6 @@ class TeifacsimileToJekyll
         tags.each do |tag, interp|
             tag_data[tag] = {'name' => interp.value}
         end
-        puts tag_data.to_yaml
 
         File.open(@tagfile, 'w') do |file|
             file.write tag_data.to_yaml
@@ -156,22 +155,22 @@ class TeifacsimileToJekyll
                 # NOTE: annotations *must* come first, so content can
                 # be rendered for display in volume pages templates
                 'annotations' => {
-                    'output' => false
+                    'output' => true
                 },
                 'volume_pages' => {
                     'output' => true,
                     'permalink' => '/pages/:path/'
                 },
             },
-            'defaults' => {
+            'defaults' => [{
                'scope' => {
                     'path' => '',
                     'type' => 'volume_pages',
                 },
                 'values' => {
-                    'layout' => 'volume_pages'
+                    'layout' => 'volume_page'
                 }
-              }
+              }]
         })
         # TODO:
         # - author information from resp statement?
