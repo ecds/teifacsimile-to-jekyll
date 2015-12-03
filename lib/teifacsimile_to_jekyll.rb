@@ -193,11 +193,11 @@ class TeifacsimileToJekyll
 
         # generate a volume page document for every facsimile page in the TEI
         puts "** Writing volume pages" unless opts[:quiet]
-        # FileUtils.rm_rf(@volume_page_dir)
-        # Dir.mkdir(@volume_page_dir) unless File.directory?(@volume_page_dir)
-        # teidoc.pages.each do |teipage|
-        #     output_page(teipage, **opts)
-        # end
+        FileUtils.rm_rf(@volume_page_dir)
+        Dir.mkdir(@volume_page_dir) unless File.directory?(@volume_page_dir)
+        teidoc.pages.each do |teipage|
+            output_page(teipage, **opts)
+        end
 
         # generate an annotation document for every annotation in the TEI
         puts "** Writing annotations" unless opts[:quiet]
