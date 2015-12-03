@@ -121,7 +121,7 @@ class TeifacsimileToJekyll
     # of volume pages and annotation content.
     # @param teidoc [TeiFacsimile]
     # @param configfile [String] path to existing config file to be updated
-    def self.upate_site_config(teidoc, configfile)
+    def self.upate_site_config(teidoc, configfile, opts={})
         siteconfig = YAML.load_file(configfile)
 
         # set site title and subtitle from the tei
@@ -130,6 +130,11 @@ class TeifacsimileToJekyll
 
         # placeholder description for author to edit (todo: include annotation author name here?)
         siteconfig['description'] = 'An annotated digital edition created with <a href="http://readux.library.emory.edu/">Readux</a>'
+
+        # enable relative links if requested
+        if opts[:relative_links]
+            siteconfig['relative_links'] = true
+        end
 
         # add urls to readux volume and pdf
         siteconfig['readux_url'] = teidoc.source_bibl['digital'].references['digital-edition'].target
@@ -171,6 +176,10 @@ class TeifacsimileToJekyll
         # TODO:
         # - author information from resp statement?
 
+        # NOTE: this generates a config file without any comments,
+        # and removes existing comments - which is not very user-friendly;
+        # look into generating/updating config with comments
+
         File.open(configfile, 'w') do |file|
             # write out updated site config
             file.write siteconfig.to_yaml
@@ -202,7 +211,7 @@ class TeifacsimileToJekyll
 
         if File.exist?(@configfile)
             puts '** Updating site config' unless opts[:quiet]
-            upate_site_config(teidoc, @configfile)
+            upate_site_config(teidoc, @configfile, opts)
         end
 
     end

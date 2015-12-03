@@ -12,9 +12,16 @@ OptionParser.new do |opts|
   opts.on("-q", "--quiet", "Run without output") do |q|
     options[:quiet] = q
   end
+
+  opts.on("-r", "--relative-links", "Configure jekyll site for relative links") do
+    options[:relative_links] = true
+  end
+
 end.parse!
 
 
 puts 'TEI file is required' unless ARGV[0]
+# FIXME: how to display option parser help instead?
+
 TeifacsimileToJekyll.import(ARGV[0], **options)
 
