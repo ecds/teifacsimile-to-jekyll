@@ -475,11 +475,11 @@ class TeiFacsimilePage < TeiXmlObject
             <%= line.css_style %>>
             <% for zone in line.word_zones %>
             <div class="ocr-zone ocrtext" <%= zone.css_style %>>
-               <span<%= zone.annotation_data %>><%= zone.annotated_text %></span>
+               <span<%= zone.annotation_data %>>{% raw %}<%= zone.annotated_text %>{% endraw %}</span>
             </div>
             <% end %>
             <% if line.word_zones.empty? %>
-                <span<%= line.annotation_data %>><%= line.annotated_text %></span>
+                <span<%= line.annotation_data %>>{% raw %}<%= line.annotated_text %>{% endraw %}</span>
             <% end %>
         </div>
         <% end %>

@@ -113,6 +113,9 @@ class TeiTest < Minitest::Unit::TestCase
             'html for page 1 should include image annotation highlights'
         assert_match "data-annotation-id=\"#{page.image_highlight_zones[0].annotation_id}\"",
             html, 'html for image annotation highlights should include annotation id'
+        assert_match '<span>{% raw %}RS{% endraw %}</span>', html,
+            'ocr text in html should marked as raw'
+
     end
 
     def test_teinote
