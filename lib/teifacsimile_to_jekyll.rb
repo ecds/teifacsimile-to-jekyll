@@ -85,7 +85,7 @@ class TeifacsimileToJekyll
     end
 
     def self.output_tags(tags, opts={})
-        puts "Generating tags" unless opts[:quiet]
+        puts "** Generating tags" unless opts[:quiet]
         # create data dir if not already present
         Dir.mkdir(@data_dir) unless File.directory?(@data_dir)
         tag_data = {}
@@ -103,6 +103,7 @@ class TeifacsimileToJekyll
         # create tag dir if not already present
         Dir.mkdir(@tag_dir) unless File.directory?(@tag_dir)
         tags.each do |tag, interp|
+            puts "Tag #{tag}" unless opts[:quiet]
             @tagfile =
             File.open(File.join(@tag_dir, "#{tag}.md"), 'w') do |file|
                 front_matter = {
