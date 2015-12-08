@@ -10,8 +10,8 @@ Gem::Specification.new do |s|
   s.executables = ['jekyllimport_teifacsimile']
   s.homepage    = 'https://github.com/emory-libraries-ecds/teifacsimile-to-jekyll'
     # 'http://rubygems.org/gems/hola'
-  s.license       = 'Apache 2'
-  s.add_runtime_dependency "nokogiri"
+  s.license       = 'Apache-2.0'
+  s.add_runtime_dependency "nokogiri",  ["~> 1.6"]
   s.add_runtime_dependency "fastimage"
   s.add_development_dependency "rake"
 end
