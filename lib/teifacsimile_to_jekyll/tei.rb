@@ -605,7 +605,9 @@ end
 # @param filename
 # @return [TeiFacsimile]
 def load_tei(filename)
-    teixml = File.open(filename) { |f| Nokogiri::XML(f) }
+    teixml = Nokogiri::XML(File.open(filename)) do |config|
+      config.options = Nokogiri::XML::ParseOptions::STRICT | Nokogiri::XML::ParseOptions::NONET
+    end
     TeiFacsimile.new(teixml)
 end
 
