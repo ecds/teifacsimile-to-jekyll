@@ -164,7 +164,7 @@ class TeiAnchor < TeiXmlObject
     xml_attr_reader :type, :xpath => '@type'
 
     xml_attr_reader :preceding_text, :xpath => 'preceding-sibling::text()[last()]'
-    xml_attr_reader :following_text, :xpath => 'following-sibling::text()[1]'
+    xml_attr_reader :following_text, :xpath => '(following-sibling::text()|following-sibling::t:line/text())[1]'
 
     # associated annotation id, for image-annotation-highlight zones
     def annotation_id
@@ -172,6 +172,10 @@ class TeiAnchor < TeiXmlObject
             'text-annotation-highlight-end'].include? self.type
             self.id.gsub(/^highlight-(start|end)-/, '')
         end
+    end
+
+    def to_s
+        "#<TeiAnchor id=#{self.id}>"
     end
 
 end
@@ -219,16 +223,19 @@ class TeiZone < TeiXmlObject
         :as => TeiZone
     # not exactly a zone, but same attributes we care about (type, id, ulx/y, lrx/y)
 
-    # @!attribute preceding_anchor
-    #   @return [TeiAnchor] nearest preceding anchor
-    xml_attr_reader :preceding_anchor,
-        :xpath => '(t:w/preceding::t:anchor[last()]|preceding::t:anchor[last()])',
-        :as => TeiAnchor
-    # @!attribute following_anchor
-    #   @return [TeiAnchor] nearest following anchor
-    xml_attr_reader :following_anchor,
-        :xpath => '(t:w/following::t:anchor[1]|following::t:anchor[1])',
-        :as => TeiAnchor
+    # @!attribute preceding_start_anchors
+    #   @return [List#TeiAnchor] all highlight start anchors before this zone
+    xml_attr_reader :preceding_start_anchors,
+        :xpath => '(t:w/preceding::t:anchor|preceding::t:anchor)' + \
+                '[@type="text-annotation-highlight-start"]',
+        :as => TeiAnchor, :list => true
+
+    # @!attribute following_end_anchors
+    #   @return [List#TeiAnchor] all highlight end anchors after this zone
+    xml_attr_reader :following_end_anchors,
+        :xpath => '(t:w/following::t:anchor|following::t:anchor)' + \
+                '[@type="text-annotation-highlight-end"]',
+        :as => TeiAnchor, :list => true
 
     # @!attribute anchors
     #   @return [List#TeiAnchor] anchors inside this zone
@@ -344,39 +351,78 @@ class TeiZone < TeiXmlObject
     end
 
     # associated annotation id, for image-annotation-highlight zones
-    # or word zones that are between start and end annotation highlight
-    # anchor markers
     def annotation_id
         if self.type == 'image-annotation-highlight'
             self.id.gsub(/^highlight-/, '')
         elsif self.highlighted?
-            self.preceding_anchor.annotation_id
+            # FIXME: might be surprising to return a list here...
+            self.annotation_ids
         end
     end
 
-    # check if the current zone falls between start and end highlight
-    # anchor tags
+    # ids for all highlight start anchors that come before this zone
+    def preceding_start_anchor_ids
+        ids = []
+        self.preceding_start_anchors.each do |anchor|
+            ids << anchor.annotation_id
+        end
+        return ids
+    end
+
+    # ids for all highlight end anchors that come after this zone
+    def following_end_anchor_ids
+        ids = []
+        self.following_end_anchors.each do |anchor|
+            ids << anchor.annotation_id
+        end
+        return ids
+    end
+
+    # ids for any annotations that cover this zone
+    # calculated by checking for matches in preceding start and following
+    # end annotation ids
+    def annotation_ids
+        # annotation ids for any start/end text highlights that cover this zone
+        self.preceding_start_anchor_ids & self.following_end_anchor_ids
+    end
+
+    # check if the current zone should be highlighted, based on whether
+    # it falls between any matching start and end highlight anchor tags
     def highlighted?
-        if self.preceding_anchor &&
-           self.preceding_anchor.type == 'text-annotation-highlight-start' &&
-           self.following_anchor &&
-           self.following_anchor.type == 'text-annotation-highlight-end' &&
-           self.preceding_anchor.annotation_id == self.following_anchor.annotation_id
-           # note: checking that ids match might be redundant
-           # todo: what about text included in multiple, overlapping highlights?
-            return true
-        else
+        if self.annotation_ids.empty?
             return false
+        else
+            return true
         end
     end
 
-    # if this zone is fully included within a text annotation, return
-    # html attributes needed to associate it with the appropriate annotation
-    def annotation_data
+    # if this zone is fully included within one or more text annotations,
+    # return html tags needed to associate it with the appropriate annotations
+    def begin_annotation_data
+        tags = ''
+        # multiple highlights are handled with nested span tags
         if self.highlighted?
-            " class=\"annotator-hl\" data-annotation-id=\"#{self.annotation_id}\""
+            for id in self.annotation_ids
+                tags += '<span class="annotator-hl" data-annotation-id="%s">' % id
+            end
+            tags
         else
-            ''
+            # text should be wrapped in a single span, even if there is no
+            # annotation data needed
+            '<span>'
+        end
+    end
+
+    def end_annotation_data
+        tags = ''
+        # multiple highlights are handled with nested span tags
+        if self.highlighted?
+            for id in self.annotation_ids
+                tags += '</span>'
+            end
+            tags
+        else
+            '</span>'
         end
     end
 
@@ -475,11 +521,11 @@ class TeiFacsimilePage < TeiXmlObject
             <%= line.css_style %>>
             <% for zone in line.word_zones %>
             <div class="ocr-zone ocrtext" <%= zone.css_style %>>
-               <span<%= zone.annotation_data %>>{% raw %}<%= zone.annotated_text %>{% endraw %}</span>
+               <%= zone.begin_annotation_data %>{% raw %}<%= zone.annotated_text %>{% endraw %}<%= zone.end_annotation_data %>
             </div>
             <% end %>
-            <% if line.word_zones.empty? %>
-                <span<%= line.annotation_data %>>{% raw %}<%= line.annotated_text %>{% endraw %}</span>
+            <% if line.word_zones.empty?  %>
+               <%= line.begin_annotation_data %>{% raw %}<%= line.annotated_text %>{% endraw %}<%= line.end_annotation_data %>
             <% end %>
         </div>
         <% end %>

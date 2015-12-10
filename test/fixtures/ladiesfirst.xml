@@ -227,9 +227,10 @@
           <tei:line>Thirteenth] Routledge's Railway Library Advertiser. [/ssu</tei:line>
         </tei:zone>
         <tei:zone xml:id="rdx_7sr72.ln.idp688480" type="line" ulx="278" uly="309" lrx="1480" lry="348">
-          <tei:line>WE GATHER THE HONEY OF WISDOM FROM THORNS, NOT FROM FLOWERS.</tei:line>
+            <tei:line>WE GATHER THE HONEY OF WISDOM FROM THORNS, NOT FROM FLOWERS.</tei:line>
         </tei:zone>
         <tei:zone xml:id="rdx_7sr72.ln.idp690960" type="line" ulx="612" uly="371" lrx="1419" lry="412">
+          <tei:anchor type="text-annotation-highlight-start" xml:id="highlight-start-testannotation1"/>
           <tei:line>_________NOBILITY OF LIFE,</tei:line>
         </tei:zone>
         <tei:zone xml:id="rdx_7sr72.ln.idp693680" type="line" ulx="849" uly="414" lrx="1531" lry="443">
@@ -240,6 +241,7 @@
         </tei:zone>
         <tei:zone xml:id="rdx_7sr72.ln.idp699184" type="line" ulx="1082" uly="481" lrx="1309" lry="506">
           <tei:line>the tale of life ?</tei:line>
+          <tei:anchor type="text-annotation-highlight-end" xml:id="highlight-end-testannotation1"/>
         </tei:zone>
         <tei:zone xml:id="rdx_7sr72.ln.idp702176" type="line" ulx="865" uly="516" lrx="1532" lry="547">
           <tei:line>** Were I asked what hrst dignifieB the present ai</tei:line>
@@ -632,7 +634,7 @@
         </tei:zone>
         <tei:zone xml:id="rdx_7sr72.ln.idp1060480" type="line" ulx="371" uly="581" lrx="1410" lry="628">
           <!-- partial annotation within a single line for testing (no corresponding note) -->
-          <tei:line>" XIV.—In <tei:anchor type="text-annotation-highlight-start" xml:id="highlight-start-4c69b06c-0888-4265-a891-5fa315f8fccd"/> Search of a Father, <tei:anchor type="text-annotation-highlight-end" xml:id="highlight-start-4c69b06c-0888-4265-a891-5fa315f8fccd"/> - 162</tei:line>
+          <tei:line>" XIV.—In <tei:anchor type="text-annotation-highlight-start" xml:id="highlight-start-4c69b06c-0888-4265-a891-5fa315f8fccd"/> Search of a Father, <tei:anchor type="text-annotation-highlight-end" xml:id="highlight-end-4c69b06c-0888-4265-a891-5fa315f8fccd"/> - 162</tei:line>
         </tei:zone>
         <tei:zone xml:id="rdx_7sr72.ln.idp1063584" type="line" ulx="370" uly="678" lrx="1410" lry="728">
           <tei:line>" XV.—Le Tslarquis de Bcauville, - 172</tei:line>

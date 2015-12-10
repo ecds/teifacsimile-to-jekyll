@@ -6,6 +6,7 @@ require 'fileutils'
 
 class TeiTest < Minitest::Unit::TestCase
     @@tei_fixture = File.expand_path('../fixtures/ladiesfirst.xml', __FILE__)
+    @@teipage_fixture = File.expand_path('../fixtures/page.xml', __FILE__)
 
     def test_load_tei
         assert_instance_of TeiFacsimile, load_tei(@@tei_fixture),
@@ -160,8 +161,6 @@ class TeiTest < Minitest::Unit::TestCase
         assert_equal "rdx_7sr72.b.idp1205744", zone.parent.id
         assert_equal "Text", zone.parent.type
         assert_equal page.id, zone.page.id
-        assert_equal nil, zone.annotation_id,
-            'normal text zone should not have an annotation id'
 
         # calculated values
         assert_equal zone.lrx - zone.ulx, zone.width
@@ -188,31 +187,62 @@ class TeiTest < Minitest::Unit::TestCase
         assert_equal '11c8fa74-7839-4d31-8a04-48a50ee4c015', imgzone.annotation_id
 
         # preceding/following anchors and text annotation
-        assert_equal nil, zone.preceding_anchor,
-            'first zone should not have a preceding anchor'
-        assert_instance_of TeiAnchor, zone.following_anchor
-        assert_equal 'text-annotation-highlight-start', zone.following_anchor.type
-        assert_equal 'highlight-start-4c69b06c-0888-4265-a891-5fa315f8fccf', zone.following_anchor.id
-        assert_equal '4c69b06c-0888-4265-a891-5fa315f8fccf', zone.following_anchor.annotation_id
+        # preceding start anchors / following end anchors
+        # - first zone has no preceding; and all end anchors follow
+        assert_equal [], zone.preceding_start_anchors
+        assert_equal 3, zone.following_end_anchors.size
+        assert_instance_of TeiAnchor, zone.following_end_anchors[0]
         assert_equal false, zone.highlighted?
-        assert_equal '', zone.annotation_data
+        assert_equal 'testannotation1', zone.following_end_anchors[0].annotation_id
+        assert_equal '4c69b06c-0888-4265-a891-5fa315f8fccd',
+            zone.following_end_anchors[1].annotation_id
+        assert_equal '4c69b06c-0888-4265-a891-5fa315f8fccf',
+            zone.following_end_anchors[2].annotation_id
+        anchor_ids = zone.following_end_anchor_ids
+        assert anchor_ids.include? 'testannotation1'
+        assert anchor_ids.include? '4c69b06c-0888-4265-a891-5fa315f8fccd'
+        assert anchor_ids.include? '4c69b06c-0888-4265-a891-5fa315f8fccf'
+
+        lastline = teidoc.pages[-1].lines[-1]
+        assert_equal [], lastline.following_end_anchors
+        assert_equal 3, lastline.preceding_start_anchors.size
+        assert_equal 'testannotation1',
+            lastline.preceding_start_anchors[0].annotation_id
+        assert_equal '4c69b06c-0888-4265-a891-5fa315f8fccf',
+            lastline.preceding_start_anchors[1].annotation_id
+        assert_equal '4c69b06c-0888-4265-a891-5fa315f8fccd',
+            lastline.preceding_start_anchors[2].annotation_id
+        anchor_ids = lastline.preceding_start_anchor_ids
+        assert anchor_ids.include? 'testannotation1'
+        assert anchor_ids.include? '4c69b06c-0888-4265-a891-5fa315f8fccd'
+        assert anchor_ids.include? '4c69b06c-0888-4265-a891-5fa315f8fccf'
 
         # test a zone that is between highlights
         # part-way through page 8  (xml:id = rdx_7sr72.ln.idp1066928)
         hizone = teidoc.pages[7].lines[7]
-        assert_instance_of TeiAnchor, hizone.preceding_anchor
-        assert_equal 'text-annotation-highlight-start', hizone.preceding_anchor.type
-        assert_equal 'text-annotation-highlight-end', hizone.following_anchor.type
-        assert_equal '4c69b06c-0888-4265-a891-5fa315f8fccf', hizone.preceding_anchor.annotation_id
-        assert_equal '4c69b06c-0888-4265-a891-5fa315f8fccf', hizone.following_anchor.annotation_id
         assert_equal true, hizone.highlighted?
-        annotation_data = hizone.annotation_data
-        assert_match 'class="annotator-hl"', annotation_data
-        assert_match "data-annotation-id=\"#{hizone.annotation_id}\"", annotation_data
+        annotation_data = hizone.begin_annotation_data
+        assert_equal '<span class="annotator-hl" data-annotation-id="%s">' % hizone.annotation_ids[0],
+            annotation_data
         assert_equal false, hizone.partially_highlighted?
         assert_equal hizone.text, hizone.annotated_text
 
-        # test a zone that is parially highlighted
+        # all lines in this section should be highlighted
+        hizone = teidoc.pages[7].lines[5]
+        assert_equal true, hizone.highlighted?,
+            'line between highlight anchors should be highlighted'
+        assert_equal ['4c69b06c-0888-4265-a891-5fa315f8fccf'], hizone.annotation_ids
+        hizone = teidoc.pages[7].lines[6]
+        assert_equal true, hizone.highlighted?
+        assert hizone.annotation_ids.include? '4c69b06c-0888-4265-a891-5fa315f8fccf'
+        hizone = teidoc.pages[7].lines[8]
+        assert_equal true, hizone.highlighted?
+        assert hizone.annotation_ids.include? '4c69b06c-0888-4265-a891-5fa315f8fccf'
+        hizone = teidoc.pages[7].lines[9]
+        assert_equal false, hizone.highlighted?
+        assert_equal true, hizone.partially_highlighted?
+
+        # test a zone that is partially highlighted
         # part-way through page 8, two before previous (xml:id = rdx_7sr72.ln.idp1060480)
         partialhizone = teidoc.pages[7].lines[5]
         assert_equal 2, partialhizone.anchors.size
@@ -223,7 +253,63 @@ class TeiTest < Minitest::Unit::TestCase
         assert_equal '" XIV.—In <span class="annotator-hl" data-annotation-id="%s"> Search of a Father, </span> - 162' % partialhizone.anchors[0].annotation_id,
             partialhizone.annotated_text
 
+        # test multiple, overlapping highlights
+        teipagexml = Nokogiri::XML(File.open(@@teipage_fixture)) do |config|
+          config.options = Nokogiri::XML::ParseOptions::STRICT | Nokogiri::XML::ParseOptions::NONET
+        end
+        page = TeiFacsimilePage.new(teipagexml)
+        # line 5, id bmst8.ln.idp19102912, is partially highlighted
+        assert page.lines[4].partially_highlighted?
+        assert_equal 'Elendig<span class="annotator-hl" data-annotation-id="b7905819-0bab-436c-909a-fe076b470479"> quaad, zo zeer te fchuuwen en te myden!',
+            page.lines[4].annotated_text
+        # line 6, id bmst8.ln.idp19105184, is fully highlighted
+        assert page.lines[5].highlighted?
+        assert_equal '<span class="annotator-hl" data-annotation-id="b7905819-0bab-436c-909a-fe076b470479">',
+            page.lines[5].begin_annotation_data
+        assert_equal '</span>', page.lines[5].end_annotation_data
+        # line 7, id bmst8.ln.idp19106896, is fully highlighted
+        assert page.lines[6].highlighted?
+        # line 8, id bmst8.ln.idp13846640, is fully highlighted
+        assert page.lines[7].highlighted?
+        # line 9, id bmst8.ln.idp13849376, is fully highlighted
+        assert page.lines[8].highlighted?
+        # line 10, id bmst8.ln.idp13851648, is fully highlighted
+        assert page.lines[9].highlighted?
+        # line 11, id bmst8.ln.idp20144224, is fully highlighted AND partially highlighted
+        assert page.lines[10].highlighted?
+        assert page.lines[10].partially_highlighted?
+        assert_equal '<span class="annotator-hl" data-annotation-id="b7905819-0bab-436c-909a-fe076b470479">',
+            page.lines[10].begin_annotation_data
+        assert_equal 'En <span class="annotator-hl" data-annotation-id="021e3090-d6f2-4120-ad65-690ab97d60fd">neem den vaften grond der zaligheid in',
+            page.lines[10].annotated_text
+        assert_equal '</span>', page.lines[10].end_annotation_data
+        # line 12, id bmst8.ln.idp20147024, should be double-highlighted
+        assert page.lines[11].highlighted?
+        assert_equal 2, page.lines[11].annotation_ids.size
+        assert_equal '<span class="annotator-hl" data-annotation-id="b7905819-0bab-436c-909a-fe076b470479"><span class="annotator-hl" data-annotation-id="021e3090-d6f2-4120-ad65-690ab97d60fd">',
+            page.lines[11].begin_annotation_data
+        assert_equal '</span></span>',
+            page.lines[11].end_annotation_data
+        # line 13, id bmst8.ln.idp20149760, double-highlighted AND partially highlighted
+        assert page.lines[12].highlighted?
+        assert page.lines[12].partially_highlighted?
+        assert_equal 2, page.lines[12].annotation_ids.size
+        assert_equal '<span class="annotator-hl" data-annotation-id="b7905819-0bab-436c-909a-fe076b470479"><span class="annotator-hl" data-annotation-id="021e3090-d6f2-4120-ad65-690ab97d60fd">',
+            page.lines[12].begin_annotation_data
+        assert_equal 'ó <span class="annotator-hl" data-annotation-id="7db68084-7a80-42da-a3a0-42412636ade3">Oog der Zielen ! </span>als die dingen voor u komen,',
+            page.lines[12].annotated_text
+        assert_equal '</span></span>',
+            page.lines[12].end_annotation_data
 
+        # line 19, id bmst8.ln.idp18545696, highlighted and partially highlighted
+        assert page.lines[18].highlighted?
+        assert page.lines[18].partially_highlighted?
+        assert_equal '<span class="annotator-hl" data-annotation-id="b7905819-0bab-436c-909a-fe076b470479">',
+            page.lines[18].begin_annotation_data
+        assert_equal '
+      <span class="annotator-hl" data-annotation-id="72ce2589-ccf2-49d6-bd88-9edddcf6d3b3">Maar queekt e</span>en Gulden Oogft uit zulk een',
+            page.lines[18].annotated_text
+        assert_equal '</span>', page.lines[18].end_annotation_data
     end
 
 end
