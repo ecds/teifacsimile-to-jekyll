@@ -163,7 +163,7 @@ class TeiAnchor < TeiXmlObject
     #   @return [String]
     xml_attr_reader :type, :xpath => '@type'
 
-    xml_attr_reader :preceding_text, :xpath => 'preceding-sibling::text()[last()]'
+    xml_attr_reader :preceding_text, :xpath => '(preceding-sibling::text()|preceding-sibling::t:line/text())[last()]'
     xml_attr_reader :following_text, :xpath => '(following-sibling::text()|following-sibling::t:line/text())[1]'
 
     # associated annotation id, for image-annotation-highlight zones

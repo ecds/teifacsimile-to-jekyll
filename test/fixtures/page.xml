@@ -81,12 +81,11 @@
       <tei:line>te trekken,</tei:line>
     </tei:zone>
     <tei:zone xml:id="bmst8.ln.idp19039904" type="line" ulx="612" uly="1634" lrx="1596" lry="1697">
-      <tei:line>Van'tallergrootfte, en u, het allernutfte ding.</tei:line>
+      <tei:line>Van'tallergrootfte, en u, het allernutfte <tei:anchor type="text-annotation-highlight-start" xml:id="highlight-start-postlineanno1"/>ding.</tei:line>
     </tei:zone>
   </tei:zone>
   <tei:zone xml:id="bmst8.b.idm24760448" type="Text" ulx="1462" uly="2030" lrx="1616" lry="2098">
     <tei:zone xml:id="bmst8.ln.idm24756784" type="line" ulx="1477" uly="2042" lrx="1599" lry="2094">
-      <tei:line>D E</tei:line>
-    </tei:zone>
+      <tei:line>D E</tei:line><tei:anchor type="text-annotation-highlight-end" xml:id="highlight-end-postlineanno1"/></tei:zone>
   </tei:zone>
 </tei:surface>

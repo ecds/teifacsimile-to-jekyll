@@ -310,6 +310,11 @@ class TeiTest < Minitest::Unit::TestCase
       <span class="annotator-hl" data-annotation-id="72ce2589-ccf2-49d6-bd88-9edddcf6d3b3">Maar queekt e</span>en Gulden Oogft uit zulk een',
             page.lines[18].annotated_text
         assert_equal '</span>', page.lines[18].end_annotation_data
+
+        # last line is partially highlighted with an anchor outside the line tag
+        assert page.lines[-1].partially_highlighted?
+        assert_equal '<span class="annotator-hl" data-annotation-id="postlineanno1">D E</span>',
+            page.lines[-1].annotated_text
     end
 
 end
