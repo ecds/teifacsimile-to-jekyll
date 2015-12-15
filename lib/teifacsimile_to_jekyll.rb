@@ -28,18 +28,44 @@ class TeifacsimileToJekyll
     # @param teipage [TeiPage]
     def self.output_page(teipage, opts={})
         puts "Page #{teipage.n}" unless opts[:quiet]
+        # by default, use page number from the tei
+        page_number = teipage.n.to_i
         path = File.join(@volume_page_dir, "%04d.html" % teipage.n.to_i)
         # retrieve page graphic urls by type for inclusion in front matter
         images = {}  # hash of image urls by rend attribute
         teipage.images.each { |img| images[img.rend] = img.url }
         # construct page front matter
         front_matter = {
-            'title'=> 'Page %s' % teipage.n,
-            'page_order'=> teipage.n.to_i,
+            'sort_order'=> page_number,
             'tei_id' => teipage.id,
             'annotation_count' => teipage.annotation_count,
-            'images' => images
+            'images' => images,
+            'title'=> 'Page %s' % page_number,
+            'number' => page_number
         }
+
+        # if an override start page is set, adjust the labels and set an
+        # override url
+        if opts[:page_one]
+            puts "page number #{page_number} page one #{opts[:page_one]}"
+            if page_number < opts[:page_one]
+                # pages before the start page will be output as front-#
+                permalink = '/pages/front-%s/' % page_number
+                front_matter['title'] = 'Front %s' % page_number
+                front_matter['short_label'] = 'f.'
+                front_matter['number'] = page_number
+            else
+                # otherwise, offset by requested start page (1-based counting)
+                adjusted_number = page_number - opts[:page_one] + 1
+                permalink = '/pages/%s/' % adjusted_number
+                front_matter['title'] = 'Page %s' % adjusted_number
+                # default short label configured as p.
+                front_matter['number'] = adjusted_number
+            end
+
+            front_matter['permalink'] = permalink
+        end
+
 
         File.open(path, 'w') do |file|
             # write out front matter as yaml

@@ -17,6 +17,12 @@ OptionParser.new do |opts|
     options[:relative_links] = true
   end
 
+  opts.on("--page-one [N]", OptionParser::DecimalInteger,
+        "Page where numbering should start in the export") do |n|
+    options[:page_one] = n
+  end
+
+
 end.parse!
 
 
