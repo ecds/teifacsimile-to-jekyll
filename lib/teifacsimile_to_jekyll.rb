@@ -47,7 +47,6 @@ class TeifacsimileToJekyll
         # if an override start page is set, adjust the labels and set an
         # override url
         if opts[:page_one]
-            puts "page number #{page_number} page one #{opts[:page_one]}"
             if page_number < opts[:page_one]
                 # pages before the start page will be output as front-#
                 permalink = '/pages/front-%s/' % page_number
@@ -203,7 +202,8 @@ class TeifacsimileToJekyll
                     'type' => 'volume_pages',
                 },
                 'values' => {
-                    'layout' => 'volume_page'
+                    'layout' => 'volume_page',
+                    'short_label' => 'p.'
                 }
               }]
         })
