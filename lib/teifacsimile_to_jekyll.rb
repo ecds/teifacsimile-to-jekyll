@@ -88,6 +88,7 @@ class TeifacsimileToJekyll
             'author' => teinote.author,
             'tei_target' => teinote.target,
             'annotated_page' => teinote.annotated_page.id,
+            'page_index' => teinote.annotated_page.index,
             'target' => teinote.start_target,
         }
         if teinote.tags

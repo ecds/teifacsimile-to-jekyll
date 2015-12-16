@@ -80,6 +80,9 @@ class TeiTest < Minitest::Unit::TestCase
         page = teidoc.pages[0]
         assert_equal 'rdx_7sr72.p.idp356752', page.id
         assert_equal '1', page.n
+        assert_equal 0, page.index
+        assert_equal 5, teidoc.pages[5].index
+        assert_equal teidoc.pages.size - 1, teidoc.pages[-1].index
         assert_instance_of Array, page.images
         assert_instance_of TeiGraphic, page.images[0]
         assert_equal 5, page.images.size,

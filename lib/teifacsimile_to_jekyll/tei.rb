@@ -5,7 +5,10 @@ require 'erb'
 
 # TEI namespace
 TEI_NAMESPACE = "http://www.tei-c.org/ns/1.0"
-$TEI_NS = {'t' => TEI_NAMESPACE}
+$TEI_NS = {
+    't' => TEI_NAMESPACE,
+    'fn' => 'http://www.w3.org/2005/xpath-functions'
+}
 
 
 # TODO: convert :list option to :array
@@ -472,6 +475,7 @@ end
 
 # Single page of a TEI facsimile
 class TeiFacsimilePage < TeiXmlObject
+
     # @!attribute id
     #   @return [String]
     xml_attr_reader :id, :xpath => '@xml:id'
@@ -508,6 +512,11 @@ class TeiFacsimilePage < TeiXmlObject
     #   @return [List#TeiZone] zones for image annotation highlights
     xml_attr_reader :image_highlight_zones, :xpath => 't:zone[@type="image-annotation-highlight"]',
         :as => TeiZone, :list => true
+
+    # zero-based index of this page in the list of all pages
+    def index
+        self.el.xpath('../t:surface[@type="page"]', self.xpath_ns).index(self.el)
+    end
 
     # template to position ocr text over the image
     # (logic adapted from readux)
