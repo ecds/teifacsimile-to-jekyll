@@ -204,7 +204,9 @@ class TeifacsimileToJekyll
                 },
                 'values' => {
                     'layout' => 'volume_page',
-                    'short_label' => 'p.'
+                    'short_label' => 'p.',
+                    'extra_js' => ['deepzoom.js', 'openseadragon.min.js',
+                        'volume-page.js']
                 }
               }]
         })
