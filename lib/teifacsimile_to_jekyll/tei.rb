@@ -627,6 +627,17 @@ class TeiInterp < TeiXmlObject
     xml_attr_reader :value, :xpath => '@value'
 end
 
+# TeiName element
+class TeiName < TeiXmlObject
+    # @!attribute id
+    #   @return [String]
+    xml_attr_reader :id, :xpath => '@xml:id'
+    # @!attribute value
+    #   @return [String]
+    xml_attr_reader :value, :xpath => '.'
+end
+
+
 # TEI facsimile document
 class TeiFacsimile < TeiXmlObject
     # @!attribute title_statement
@@ -653,6 +664,11 @@ class TeiFacsimile < TeiXmlObject
     #   @return [Hash#TeiInterp]
     xml_attr_reader :tags, :xpath => '//t:back/t:interpGrp[@type="tags"]/t:interp',
         :as => TeiInterp, :hash => true, :hash_key_xpath => '@xml:id'
+
+    # @!attribute resp
+    #   @return [Hash#TeiName]
+    xml_attr_reader :resp, :xpath => '//t:teiHeader/t:fileDesc/t:titleStmt/t:respStmt/t:name',
+        :as => TeiName, :hash => true, :hash_key_xpath => '@xml:id'
 
 end
 

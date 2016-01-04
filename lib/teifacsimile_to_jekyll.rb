@@ -1,3 +1,4 @@
+require 'date'
 require 'fileutils'
 require 'yaml'
 require 'fastimage'
@@ -164,8 +165,6 @@ class TeifacsimileToJekyll
         end
 
         # add urls to readux volume and pdf
-        siteconfig['readux_url'] = teidoc.source_bibl['digital'].references['digital-edition'].target
-        siteconfig['readux_pdf_url'] = teidoc.source_bibl['digital'].references['pdf'].target
 
         # use first page (which should be the cover) as a default splash
         # image for the home page
@@ -178,14 +177,32 @@ class TeifacsimileToJekyll
             'thumbnail' => {'width' => thumbnail_width, 'height' => thumbnail_height}
         }
 
-        # add original publication information
+        # add source publication information, including
+        # urls to volume and pdf on readux
         original = teidoc.source_bibl['original']
-        pubinfo = {'title' => original.title, 'author' => original.author,
-            'date' => original.date}
+        source_info = {'title' => original.title, 'author' => original.author,
+            'date' => original.date,
+            'url' => teidoc.source_bibl['digital'].references['digital-edition'].target,
+            'pdf_url' => teidoc.source_bibl['digital'].references['pdf'].target,
+            'via_readux' => true}
+
+        # preliminary publication information for the annotated edition
+        pub_info = {'title' => teidoc.title_statement.title + teidoc.title_statement.subtitle,
+            'date' => Date.today.strftime("%Y"), # current year
+            'author' => original.author,
+            'editors' => []
+        }
+
+        # add all annotator names to the document as editors
+        # of the annotated edition; use username if name is empty
+        teidoc.resp.each do |resp, name|
+            pub_info['editors']  << (name.value != '' ? name.value : resp)
+        end
 
         # configure collections specific to tei facsimile + annotation data
         siteconfig.merge!({
-            'publication_info' => pubinfo,
+            'source_info' => source_info,
+            'publication_info' => pub_info,
             'collections' => {
                 # NOTE: annotations *must* come first, so content can
                 # be rendered for display in volume pages templates

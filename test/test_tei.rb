@@ -46,6 +46,15 @@ class TeiTest < Minitest::Unit::TestCase
         assert_instance_of TeiInterp, teidoc.tags['test']
         assert_equal teidoc.tags['whee'].value, 'whee!'
 
+        # resp names in header
+        assert_equal 4, teidoc.resp.size,
+            'should include 4 names in respStmt'
+        assert_instance_of Hash, teidoc.resp
+        assert_instance_of TeiName, teidoc.resp['rsk']
+        assert_equal '', teidoc.resp['rsk'].value
+        assert_equal 'Sara Palmer', teidoc.resp['sepalme'].value
+        assert_equal 'Sara Palmer', teidoc.resp['sarepal'].value
+
     end
 
     def test_tei_titlestatement
