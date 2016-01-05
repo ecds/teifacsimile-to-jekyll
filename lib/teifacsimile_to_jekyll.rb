@@ -149,7 +149,7 @@ class TeifacsimileToJekyll
     # of volume pages and annotation content.
     # @param teidoc [TeiFacsimile]
     # @param configfile [String] path to existing config file to be updated
-    def self.upate_site_config(teidoc, configfile, opts={})
+    def self.update_site_config(teidoc, configfile, opts={})
         siteconfig = YAML.load_file(configfile)
 
         # set site title and subtitle from the tei
@@ -190,8 +190,12 @@ class TeifacsimileToJekyll
         pub_info = {'title' => teidoc.title_statement.title + teidoc.title_statement.subtitle,
             'date' => Date.today.strftime("%Y"), # current year
             'author' => original.author,
-            'editors' => []
+            'editors' => [],
         }
+        # add a reference to the tei xml, for display
+        if opts.has_key?('tei_filename')
+            pub_info['tei_xml'] = opts['tei_filename']
+        end
 
         # add all annotator names to the document as editors
         # of the annotated edition; use username if name is empty
@@ -263,10 +267,15 @@ class TeifacsimileToJekyll
 
         output_tags(teidoc.tags, **opts)
 
+        # copy annotated tei into jekyll site
+        opts['tei_filename'] = 'tei.xml'
+        FileUtils.copy_file(filename, opts['tei_filename'])
+
         if File.exist?(@configfile)
             puts '** Updating site config' unless opts[:quiet]
-            upate_site_config(teidoc, @configfile, opts)
+            update_site_config(teidoc, @configfile, opts)
         end
+
 
     end
 end
