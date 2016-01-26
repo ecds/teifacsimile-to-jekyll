@@ -159,11 +159,6 @@ class TeifacsimileToJekyll
         # placeholder description for author to edit (todo: include annotation author name here?)
         siteconfig['description'] = 'An annotated digital edition created with <a href="http://readux.library.emory.edu/">Readux</a>'
 
-        # enable relative links if requested
-        if opts[:relative_links]
-            siteconfig['relative_links'] = true
-        end
-
         # add urls to readux volume and pdf
 
         # use first page (which should be the cover) as a default splash

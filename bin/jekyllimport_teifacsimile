@@ -13,10 +13,6 @@ OptionParser.new do |opts|
     options[:quiet] = q
   end
 
-  opts.on("-r", "--relative-links", "Configure jekyll site for relative links") do
-    options[:relative_links] = true
-  end
-
   opts.on("--page-one [N]", OptionParser::DecimalInteger,
         "Page where numbering should start in the export") do |n|
     options[:page_one] = n
