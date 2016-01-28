@@ -457,6 +457,8 @@ class TeiZone < TeiXmlObject
                 # start or end an annotation highlight as appropriate
                 if anchor.type == 'text-annotation-highlight-start'
                     text << "<span class=\"annotator-hl\" data-annotation-id=\"#{anchor.annotation_id}\">"
+                    text << "<a href=\"\##{anchor.annotation_id}\" name=\"hl-#{anchor.annotation_id}\" class=\"to-annotation\" ></a>"
+
                 elsif anchor.type == 'text-annotation-highlight-end'
                     text << "</span>"
                 end
@@ -542,6 +544,9 @@ class TeiFacsimilePage < TeiXmlObject
             <span class="annotator-hl image-annotation-highlight"
                 data-annotation-id="<%= img_highlight.annotation_id %>"
                 <%= img_highlight.css_style %>>
+                <a href="#<%= img_highlight.annotation_id %>"
+                  name="hl-<%= img_highlight.annotation_id %>" class="to-annotation"></a>
+
             </span>
         <% end %>
       }
