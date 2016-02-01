@@ -168,8 +168,12 @@ class TeifacsimileToJekyll
         # add image dimensions to config so that thumbnail display can be tailored
         # to the current volume page size
         thumbnail_width, thumbnail_height = FastImage.size(teidoc.pages[0].images_by_type['thumbnail'].url)
+        sm_thumbnail_width, sm_thumbnail_height = FastImage.size(teidoc.pages[0].images_by_type['small-thumbnail'].url)
+        page_img_width, page_img_height = FastImage.size(teidoc.pages[0].images_by_type['page'].url)
         siteconfig['image_size'] = {
-            'thumbnail' => {'width' => thumbnail_width, 'height' => thumbnail_height}
+            'page' => {'width' => page_img_width, 'height' => page_img_height},
+            'thumbnail' => {'width' => thumbnail_width, 'height' => thumbnail_height},
+            'small-thumbnail' => {'width' => sm_thumbnail_width, 'height' => sm_thumbnail_height}
         }
 
         # add source publication information, including
