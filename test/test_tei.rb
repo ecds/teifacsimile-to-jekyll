@@ -262,7 +262,8 @@ class TeiTest < Minitest::Unit::TestCase
         assert_equal true, partialhizone.partially_highlighted?
         assert_match " XIV.—In", partialhizone.anchors[0].preceding_text
         assert_match "Search of a Father,", partialhizone.anchors[0].following_text
-        assert_equal '" XIV.—In <span class="annotator-hl" data-annotation-id="%s"> Search of a Father, </span> - 162' % partialhizone.anchors[0].annotation_id,
+        ano_id = partialhizone.anchors[0].annotation_id
+        assert_equal "\" XIV.—In <span class=\"annotator-hl\" data-annotation-id=\"#{ano_id}\"><a href=\"##{ano_id}\" name=\"hl-#{ano_id}\" class=\"to-annotation\" ></a> Search of a Father, </span> - 162",
             partialhizone.annotated_text
 
         # test multiple, overlapping highlights
@@ -272,7 +273,8 @@ class TeiTest < Minitest::Unit::TestCase
         page = TeiFacsimilePage.new(teipagexml)
         # line 5, id bmst8.ln.idp19102912, is partially highlighted
         assert page.lines[4].partially_highlighted?
-        assert_equal 'Elendig<span class="annotator-hl" data-annotation-id="b7905819-0bab-436c-909a-fe076b470479"> quaad, zo zeer te fchuuwen en te myden!',
+        ano_id = "b7905819-0bab-436c-909a-fe076b470479"
+        assert_equal "Elendig<span class=\"annotator-hl\" data-annotation-id=\"#{ano_id}\"><a href=\"##{ano_id}\" name=\"hl-#{ano_id}\" class=\"to-annotation\" ></a> quaad, zo zeer te fchuuwen en te myden!",
             page.lines[4].annotated_text
         # line 6, id bmst8.ln.idp19105184, is fully highlighted
         assert page.lines[5].highlighted?
@@ -292,7 +294,8 @@ class TeiTest < Minitest::Unit::TestCase
         assert page.lines[10].partially_highlighted?
         assert_equal '<span class="annotator-hl" data-annotation-id="b7905819-0bab-436c-909a-fe076b470479">',
             page.lines[10].begin_annotation_data
-        assert_equal 'En <span class="annotator-hl" data-annotation-id="021e3090-d6f2-4120-ad65-690ab97d60fd">neem den vaften grond der zaligheid in',
+            ano_id = "021e3090-d6f2-4120-ad65-690ab97d60fd"
+        assert_equal "En <span class=\"annotator-hl\" data-annotation-id=\"#{ano_id}\"><a href=\"##{ano_id}\" name=\"hl-#{ano_id}\" class=\"to-annotation\" ></a>neem den vaften grond der zaligheid in",
             page.lines[10].annotated_text
         assert_equal '</span>', page.lines[10].end_annotation_data
         # line 12, id bmst8.ln.idp20147024, should be double-highlighted
@@ -308,7 +311,8 @@ class TeiTest < Minitest::Unit::TestCase
         assert_equal 2, page.lines[12].annotation_ids.size
         assert_equal '<span class="annotator-hl" data-annotation-id="b7905819-0bab-436c-909a-fe076b470479"><span class="annotator-hl" data-annotation-id="021e3090-d6f2-4120-ad65-690ab97d60fd">',
             page.lines[12].begin_annotation_data
-        assert_equal 'ó <span class="annotator-hl" data-annotation-id="7db68084-7a80-42da-a3a0-42412636ade3">Oog der Zielen ! </span>als die dingen voor u komen,',
+        ano_id = "7db68084-7a80-42da-a3a0-42412636ade3"
+        assert_equal "ó <span class=\"annotator-hl\" data-annotation-id=\"#{ano_id}\"><a href=\"##{ano_id}\" name=\"hl-#{ano_id}\" class=\"to-annotation\" ></a>Oog der Zielen ! </span>als die dingen voor u komen,",
             page.lines[12].annotated_text
         assert_equal '</span></span>',
             page.lines[12].end_annotation_data
@@ -318,8 +322,9 @@ class TeiTest < Minitest::Unit::TestCase
         assert page.lines[18].partially_highlighted?
         assert_equal '<span class="annotator-hl" data-annotation-id="b7905819-0bab-436c-909a-fe076b470479">',
             page.lines[18].begin_annotation_data
-        assert_equal '
-      <span class="annotator-hl" data-annotation-id="72ce2589-ccf2-49d6-bd88-9edddcf6d3b3">Maar queekt e</span>en Gulden Oogft uit zulk een',
+        ano_id = "72ce2589-ccf2-49d6-bd88-9edddcf6d3b3"
+        assert_equal "
+      <span class=\"annotator-hl\" data-annotation-id=\"#{ano_id}\"><a href=\"##{ano_id}\" name=\"hl-#{ano_id}\" class=\"to-annotation\" ></a>Maar queekt e</span>en Gulden Oogft uit zulk een",
             page.lines[18].annotated_text
         assert_equal '</span>', page.lines[18].end_annotation_data
 
