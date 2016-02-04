@@ -1,7 +1,10 @@
 require 'fileutils'
 require 'nokogiri'
 require 'erb'
+require 'logger'
 
+$LOG = Logger.new(STDOUT)
+$LOG.level = Logger::DEBUG
 
 # TEI namespace
 TEI_NAMESPACE = "http://www.tei-c.org/ns/1.0"
@@ -555,7 +558,11 @@ class TeiFacsimilePage < TeiXmlObject
     # html for page text content using the #template
     # (logic adapted from readux)
     def html()
-        return ERB.new(self.template()).result(binding)
+        start_time = Time.now
+        html = ERB.new(self.template()).result(binding)
+        end_time = Time.now
+        $LOG.debug("Generated page HTML in #{(end_time - start_time)*1000} milliseconds")
+        return html
     end
 
 end
