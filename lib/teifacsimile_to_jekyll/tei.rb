@@ -12,6 +12,7 @@ $TEI_NS = {
     't' => TEI_NAMESPACE,
     'fn' => 'http://www.w3.org/2005/xpath-functions'
 }
+$TEI_HTML_XSL = Nokogiri::XSLT(File.read(File.expand_path('../teipage-to-html.xsl', __FILE__)))
 
 
 # TODO: convert :list option to :array
@@ -557,12 +558,24 @@ class TeiFacsimilePage < TeiXmlObject
 
     # html for page text content using the #template
     # (logic adapted from readux)
-    def html()
+    def OLD_html()
         start_time = Time.now
         html = ERB.new(self.template()).result(binding)
         end_time = Time.now
         $LOG.debug("Generated page HTML in #{(end_time - start_time)*1000} milliseconds")
         return html
+    end
+
+    def html()
+        start_time = Time.now
+        # print self.el
+        tmpdoc = Nokogiri::XML::Document.new()
+        tmpdoc.add_child(self.el)
+        html = $TEI_HTML_XSL.transform(tmpdoc, ['SINGLE_PAGE_SIZE', SINGLE_PAGE_SIZE.to_s])
+        print html.to_html
+        end_time = Time.now
+        $LOG.debug("Generated page HTML in #{(end_time - start_time)*1000} milliseconds")
+        return html.to_html
     end
 
 end

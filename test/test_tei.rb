@@ -194,6 +194,8 @@ class TeiTest < Minitest::Unit::TestCase
         assert_match 'font-size:', css
         assert_match 'data-vhfontsize="', css
 
+        # FIXME: rework tests to check all the logic that has shifted to the xslt
+
         # image annotation zone - should have an annotation id
         imgzone = page.image_highlight_zones[0]
         assert_equal '11c8fa74-7839-4d31-8a04-48a50ee4c015', imgzone.annotation_id
