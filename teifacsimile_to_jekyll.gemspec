@@ -6,7 +6,8 @@ Gem::Specification.new do |s|
   s.description = "A simple hello world gem"
   s.authors     = ["Rebecca Sutton Koeser"]
   s.email       = 'rebecca.s.koeser@emory.edu'
-  s.files       = ["lib/teifacsimile_to_jekyll.rb", "lib/teifacsimile_to_jekyll/tei.rb"]
+  s.files       = ["lib/teifacsimile_to_jekyll.rb", "lib/teifacsimile_to_jekyll/tei.rb",
+    "lib/teifacsimile_to_jekyll/teipage-to-html.xsl"]
   s.executables = ['jekyllimport_teifacsimile']
   s.homepage    = 'https://github.com/emory-libraries-ecds/teifacsimile-to-jekyll'
     # 'http://rubygems.org/gems/hola'
