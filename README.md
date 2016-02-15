@@ -1,6 +1,8 @@
 # teifacsimile-to-jekyll
 Generate jekyll site content from annotated TEI facsimile.
 
+[![Travis-CI build status](https://travis-ci.org/emory-libraries-ecds/teifacsimile-to-jekyll.svg "Travis-CI build")](https://travis-ci.org/emory-libraries-ecds/teifacsimile-to-jekyll)
+
 ## Developer notes
 
 Run the tests:
