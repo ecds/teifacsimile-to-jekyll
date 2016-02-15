@@ -14,7 +14,7 @@
   <xsl:output indent="yes" method="html" encoding="utf-8" omit-xml-declaration="yes"/>
   <xsl:strip-space elements="*"/>
 
-  <xsl:template match="tei:zone[@type='line']">
+  <xsl:template match="tei:zone[@type='line'] | tei:zone[@type='textLine']">
     <div>
         <xsl:attribute name="class">ocr-line<xsl:if test="count(.//tei:w) = 0"> ocrtext</xsl:if></xsl:attribute>
         <xsl:call-template name="css-styles"/>
@@ -29,6 +29,7 @@
     </div>
   </xsl:template>
 
+  <!-- single word of text within a line (from mets/alto ocr) -->
   <xsl:template match="tei:zone[@type='string']">
     <div class="ocr-zone ocrtext">
         <xsl:call-template name="css-styles"/>
@@ -115,8 +116,8 @@
      <!--<tei:zone type="image-annotation-highlight" ulx="745.185" uly="1173.054" lrx="1377.9052" lry="1875.063" xml:id="highlight-30351770-1e9e-42be-a3f2-7376290b5c40"/> -->
     <xsl:variable name="annotation_id"><xsl:value-of select="substring-after(@xml:id, 'highlight-')"/></xsl:variable>
     <span class="annotator-hl image-annotation-highlight">
-        <xsl:attribute name="data-annotation-id"><xsl:value-of select="$annotation_id"/></xsl:attribute>
-        <!-- css todo -->
+        <xsl:attribute name="data-annotation-id"><xsl:value-of select="$annotation_id"/></xsl:attribute
+        <xsl:call-template name="css-styles"/>
         <a class="to-annotation">
          <xsl:attribute name="href"><xsl:value-of select="concat('#', $annotation_id)"/></xsl:attribute>
          <xsl:attribute name="name"><xsl:value-of select="concat('hl-', $annotation_id)"/></xsl:attribute>
@@ -138,11 +139,18 @@
             <!-- identify preceding anchors that belong with following anchors -->
             <xsl:variable name="highlights"
                 select="$preceding-start-anchors[contains(@xml:id, substring-after($following_end_anchors/@xml:id, 'highlight-end-'))]"/>
-            <!-- todo: handle multiple highlights -->
-            <span class="annotator-hl">
-                <xsl:attribute name="data-annotation-id"><xsl:value-of select="substring-after($highlights/@xml:id, 'highlight-start-')"/></xsl:attribute>
+              <xsl:choose>
+                <xsl:when test="count($highlights)">
+                <!-- todo: handle multiple highlights -->
+                <span class="annotator-hl">
+                    <xsl:attribute name="data-annotation-id"><xsl:value-of select="substring-after($highlights/@xml:id, 'highlight-start-')"/></xsl:attribute>
+                    <xsl:apply-templates select="." mode="raw-text"/>
+                </span>
+              </xsl:when>
+              <xsl:otherwise>
                 <xsl:apply-templates select="." mode="raw-text"/>
-            </span>
+              </xsl:otherwise>
+            </xsl:choose>
     </xsl:when>
     <xsl:otherwise>
         <xsl:apply-templates select="." mode="raw-text"/>
@@ -152,7 +160,7 @@
   </xsl:template>
 
     <xsl:template match="text()" mode="raw-text">
-        <span><xsl:text>{% raw %}</xsl:text><xsl:value-of select="."/><xsl:text>{% endraw %}</xsl:text></span>
+        <xsl:text>{% raw %}</xsl:text><xsl:value-of select="."/><xsl:text>{% endraw %}</xsl:text>
     </xsl:template>
 
     <!-- workaround for xslt 1.0 and no max function -->
