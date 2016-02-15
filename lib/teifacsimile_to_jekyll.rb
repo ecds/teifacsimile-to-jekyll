@@ -87,7 +87,10 @@ class TeifacsimileToJekyll
             return
         end
 
-        path = File.join(@annotation_dir, "%s.md" % teinote.id)
+        # use id without leading annotation- as filename
+        # (otherwise results in redundant file path and name/url)
+        path = File.join(@annotation_dir, "%s.md" % teinote.annotation_id)
+
         front_matter = {
             'annotation_id' => teinote.annotation_id,
             'author' => teinote.author,
@@ -214,7 +217,8 @@ class TeifacsimileToJekyll
                 # NOTE: annotations *must* come first, so content can
                 # be rendered for display in volume pages templates
                 'annotations' => {
-                    'output' => true
+                    'output' => true,
+                    'permalink' => '/annotations/:path/'
                 },
                 'volume_pages' => {
                     'output' => true,
@@ -232,7 +236,16 @@ class TeifacsimileToJekyll
                     'extra_js' => ['deepzoom.js', 'openseadragon.min.js',
                         'volume-page.js', 'hammer.min.js']
                 }
-              }]
+              },
+              {'scope' => {
+                    'path' => '',
+                    'type' => 'annotations',
+                },
+                'values' => {
+                    'layout' => 'annotation'
+                }
+              }
+          ]
         })
         # TODO:
         # - author information from resp statement?
