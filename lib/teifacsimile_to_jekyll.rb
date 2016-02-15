@@ -70,10 +70,9 @@ class TeifacsimileToJekyll
         File.open(path, 'w') do |file|
             # write out front matter as yaml
             file.write front_matter.to_yaml
-            file.write  "\n---"
-            # todo: unique page content that can't be handled by template
-            # (should be primarily tei text and annotation references)
-            # file.write "\n<img src='#{images["page"]}' />"
+            # ensure separation between yaml and page content
+            file.write  "\n---\n\n"
+             # page text content as html with annotation highlights
             file.write teipage.html()
         end
     end
@@ -83,6 +82,11 @@ class TeifacsimileToJekyll
     # @param teinote [TeiNote]
     def self.output_annotation(teinote, opts={})
         puts "Annotation #{teinote.annotation_id}" unless opts[:quiet]
+        if teinote.annotated_page.nil?
+            puts 'Error: annotated page not found'
+            return
+        end
+
         path = File.join(@annotation_dir, "%s.md" % teinote.id)
         front_matter = {
             'annotation_id' => teinote.annotation_id,

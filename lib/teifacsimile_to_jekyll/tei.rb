@@ -12,6 +12,12 @@ $TEI_NS = {
     't' => TEI_NAMESPACE,
     'fn' => 'http://www.w3.org/2005/xpath-functions'
 }
+$TEI_HTML_XSL = Nokogiri::XSLT(File.read(File.expand_path('../teipage-to-html.xsl', __FILE__)))
+
+# single page size, used for scaling
+# FIXME: should be configured somewhere
+# (we happen to know this is current readux full page size...)
+$SINGLE_PAGE_SIZE = 1000
 
 
 # TODO: convert :list option to :array
@@ -32,6 +38,10 @@ class XmlObject
     # attribute accessor xpaths
     def xpath_ns
         {}
+    end
+
+    def nil?
+        return @el.nil?
     end
 
     # convert xml element to the configured type; currently
@@ -277,10 +287,6 @@ class TeiZone < TeiXmlObject
         [self.width, self.height].max
     end
 
-    # single page size
-    # FIXME: should be configured somewhere
-    # (we happen to know this is current readux full page size...)
-    SINGLE_PAGE_SIZE = 1000
 
 
     # generate html style and data attributes to position
@@ -291,7 +297,7 @@ class TeiZone < TeiXmlObject
         data = {}
         # determine scale from original page size to current display size,
         # for non-relative styles (i.e. font sizes)
-        scale = SINGLE_PAGE_SIZE.to_f / self.page.long_edge.to_f
+        scale = $SINGLE_PAGE_SIZE.to_f / self.page.long_edge.to_f
 
         # utility method for generating percents for display in
         # css styles
@@ -557,12 +563,28 @@ class TeiFacsimilePage < TeiXmlObject
 
     # html for page text content using the #template
     # (logic adapted from readux)
-    def html()
+    def deprecated_html()
+        # keeping for reference - erb template based output is
+        # far too slow for nested content with mets/alto word-level tagging,
+        # such as the Original Sacred Harp
         start_time = Time.now
         html = ERB.new(self.template()).result(binding)
         end_time = Time.now
         $LOG.debug("Generated page HTML in #{(end_time - start_time)*1000} milliseconds")
         return html
+    end
+
+    def html()
+        start_time = Time.now
+        # nokogiri can only transform documents, not nodes, so create
+        # a temporary document with just this node content
+        tmpdoc = Nokogiri::XML::Document.new()
+        tmpdoc.add_child(self.el.clone)
+        htmldoc = $TEI_HTML_XSL.transform(tmpdoc, ['SINGLE_PAGE_SIZE', $SINGLE_PAGE_SIZE.to_s])
+        end_time = Time.now
+        $LOG.debug("Generated page HTML in #{(end_time - start_time)*1000} milliseconds")
+        # print htmldoc.to_xhtml
+        return htmldoc.to_xhtml
     end
 
 end
