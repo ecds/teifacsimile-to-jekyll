@@ -230,7 +230,7 @@
             <tei:line>WE GATHER THE HONEY OF WISDOM FROM THORNS, NOT FROM FLOWERS.</tei:line>
         </tei:zone>
         <tei:zone xml:id="rdx_7sr72.ln.idp690960" type="line" ulx="612" uly="371" lrx="1419" lry="412">
-          <tei:anchor type="text-annotation-highlight-start" xml:id="highlight-start-testannotation1"/>
+          <tei:anchor type="text-annotation-highlight-start" xml:id="highlight-start-testannotation1" next="highlight-end-testannotation1"/>
           <tei:line>_________NOBILITY OF LIFE,</tei:line>
         </tei:zone>
         <tei:zone xml:id="rdx_7sr72.ln.idp693680" type="line" ulx="849" uly="414" lrx="1531" lry="443">
@@ -627,14 +627,14 @@
           <tei:line>Chapter XII.—The Past's Buried Secrets, 144</tei:line>
         </tei:zone>
         <tei:zone xml:id="rdx_7sr72.ln.idp1054352" type="line" ulx="372" uly="385" lrx="1315" lry="427">
-          <tei:line>" XI<tei:anchor type="text-annotation-highlight-start" xml:id="highlight-start-4c69b06c-0888-4265-a891-5fa315f8fccf"/>II.—Lutner Turns Honest</tei:line>
+          <tei:line>" XI<tei:anchor type="text-annotation-highlight-start" xml:id="highlight-start-4c69b06c-0888-4265-a891-5fa315f8fccf" next="highlight-end-4c69b06c-0888-4265-a891-5fa315f8fccf"/>II.—Lutner Turns Honest</tei:line>
         </tei:zone>
         <tei:zone xml:id="rdx_7sr72.ln.idp1057456" type="line" ulx="717" uly="483" lrx="1413" lry="535">
           <tei:line>Miner, - - - 157</tei:line>
         </tei:zone>
         <tei:zone xml:id="rdx_7sr72.ln.idp1060480" type="line" ulx="371" uly="581" lrx="1410" lry="628">
           <!-- partial annotation within a single line for testing (no corresponding note) -->
-          <tei:line>" XIV.—In <tei:anchor type="text-annotation-highlight-start" xml:id="highlight-start-4c69b06c-0888-4265-a891-5fa315f8fccd"/> Search of a Father, <tei:anchor type="text-annotation-highlight-end" xml:id="highlight-end-4c69b06c-0888-4265-a891-5fa315f8fccd"/> - 162</tei:line>
+          <tei:line>" XIV.—In <tei:anchor type="text-annotation-highlight-start" xml:id="highlight-start-4c69b06c-0888-4265-a891-5fa315f8fccd" next="highlight-end-4c69b06c-0888-4265-a891-5fa315f8fccd"/> Search of a Father, <tei:anchor type="text-annotation-highlight-end" xml:id="highlight-end-4c69b06c-0888-4265-a891-5fa315f8fccd"/> - 162</tei:line>
         </tei:zone>
         <tei:zone xml:id="rdx_7sr72.ln.idp1063584" type="line" ulx="370" uly="678" lrx="1410" lry="728">
           <tei:line>" XV.—Le Tslarquis de Bcauville, - 172</tei:line>
