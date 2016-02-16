@@ -2,7 +2,7 @@
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
   xmlns:xs="http://www.w3.org/2001/XMLSchema"
   xmlns:tei="http://www.tei-c.org/ns/1.0"
-  version="1.0" exclude-result-prefixes="tei xs">
+  version="1.1" exclude-result-prefixes="tei xs">
 
   <doc xmlns="http://www.oxygenxml.com/ns/doc/xsl">
     <desc>Stylesheet for generating HTML from a TEI facsimile page.</desc>
@@ -23,7 +23,9 @@
                 <xsl:apply-templates select=".//tei:w"/>
             </xsl:when>
             <xsl:otherwise>
+              <span>
                 <xsl:apply-templates select="tei:line/text()"/>
+              </span>
             </xsl:otherwise>
         </xsl:choose>
     </div>
@@ -116,7 +118,7 @@
      <!--<tei:zone type="image-annotation-highlight" ulx="745.185" uly="1173.054" lrx="1377.9052" lry="1875.063" xml:id="highlight-30351770-1e9e-42be-a3f2-7376290b5c40"/> -->
     <xsl:variable name="annotation_id"><xsl:value-of select="substring-after(@xml:id, 'highlight-')"/></xsl:variable>
     <span class="annotator-hl image-annotation-highlight">
-        <xsl:attribute name="data-annotation-id"><xsl:value-of select="$annotation_id"/></xsl:attribute
+        <xsl:attribute name="data-annotation-id"><xsl:value-of select="$annotation_id"/></xsl:attribute>
         <xsl:call-template name="css-styles"/>
         <a class="to-annotation">
          <xsl:attribute name="href"><xsl:value-of select="concat('#', $annotation_id)"/></xsl:attribute>
@@ -126,37 +128,47 @@
   </xsl:template>
 
   <xsl:template match="text()">
-    <!-- find any highlight anchors before and after current text -->
-    <xsl:variable name="preceding-start-anchors"
-        select="preceding::tei:anchor[@type='text-annotation-highlight-start']"/>
+    <!-- identify active highlights: start anchors before the current text with matching end anchors after -->
+      <!-- find any highlight anchors before and after current text -->
+      <xsl:variable name="preceding-start-anchors"
+            select="preceding::tei:anchor[@type='text-annotation-highlight-start']"/>
 
-    <xsl:variable name="following_end_anchors"
-        select="following::tei:anchor[@type='text-annotation-highlight-end']"/>
+      <xsl:variable name="following-end-anchors"
+           select="following::tei:anchor[@type='text-annotation-highlight-end']"/>
+
+      <xsl:variable name="highlights"
+          select="$preceding-start-anchors[@next = $following-end-anchors/@xml:id]"/>
 
     <xsl:choose>
-        <!-- if both preceding and following anchors are found -->
-        <xsl:when test="count($preceding-start-anchors) and count($following_end_anchors)">
-            <!-- identify preceding anchors that belong with following anchors -->
-            <xsl:variable name="highlights"
-                select="$preceding-start-anchors[contains(@xml:id, substring-after($following_end_anchors/@xml:id, 'highlight-end-'))]"/>
-              <xsl:choose>
-                <xsl:when test="count($highlights)">
-                <!-- todo: handle multiple highlights -->
-                <span class="annotator-hl">
-                    <xsl:attribute name="data-annotation-id"><xsl:value-of select="substring-after($highlights/@xml:id, 'highlight-start-')"/></xsl:attribute>
-                    <xsl:apply-templates select="." mode="raw-text"/>
-                </span>
-              </xsl:when>
-              <xsl:otherwise>
-                <xsl:apply-templates select="." mode="raw-text"/>
-              </xsl:otherwise>
-            </xsl:choose>
+        <xsl:when test="count($highlights)">
+            <xsl:call-template name="highlighted-text">
+              <xsl:with-param name="highlights" select="$highlights"/>
+            </xsl:call-template>
     </xsl:when>
     <xsl:otherwise>
         <xsl:apply-templates select="." mode="raw-text"/>
     </xsl:otherwise>
     </xsl:choose>
+  </xsl:template>
 
+
+  <xsl:template name="highlighted-text">
+    <xsl:param name="highlights"/>
+     <xsl:choose>
+      <xsl:when test="count($highlights) != 0">
+        <span class="annotator-hl">
+            <xsl:attribute name="data-annotation-id"><xsl:value-of select="substring-after($highlights/@xml:id, 'highlight-start-')"/></xsl:attribute>
+
+            <xsl:call-template name="highlighted-text">
+              <xsl:with-param name="highlights" select="$highlights[position() &gt; 1]"/>
+            </xsl:call-template>
+
+        </span>
+      </xsl:when>
+      <xsl:otherwise>
+          <xsl:apply-templates select="." mode="raw-text"/>
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:template>
 
     <xsl:template match="text()" mode="raw-text">
