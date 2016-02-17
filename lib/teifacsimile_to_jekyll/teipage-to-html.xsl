@@ -19,11 +19,11 @@
         <xsl:attribute name="class">ocr-line<xsl:if test="count(.//tei:w) = 0"> ocrtext</xsl:if></xsl:attribute>
         <xsl:call-template name="css-styles"/>
         <xsl:choose>
-            <xsl:when test="count(.//tei:w)">
-                <xsl:apply-templates select=".//tei:w"/>
+            <xsl:when test="count(.//tei:w)"> <!-- word-level content -->
+                <xsl:apply-templates select=".//tei:zone[@type='string']"/>
             </xsl:when>
             <xsl:otherwise>
-              <span>
+              <span>  <!-- line-level content only -->
                 <xsl:apply-templates select="tei:line/text()"/>
               </span>
             </xsl:otherwise>
@@ -33,10 +33,10 @@
 
   <!-- single word of text within a line (from mets/alto ocr) -->
   <xsl:template match="tei:zone[@type='string']">
-    <div class="ocr-zone ocrtext">
+    <span class="ocr-zone ocrtext">
         <xsl:call-template name="css-styles"/>
         <xsl:apply-templates select="tei:w/text()"/>
-    </div>
+    </span>
   </xsl:template>
 
   <xsl:template name="css-styles">
