@@ -33,10 +33,10 @@
 
   <!-- single word of text within a line (from mets/alto ocr) -->
   <xsl:template match="tei:zone[@type='string']">
-    <span class="ocr-zone ocrtext">
+    <div class="ocr-zone ocrtext">
         <xsl:call-template name="css-styles"/>
-        <xsl:apply-templates select="tei:w/text()"/>
-    </span>
+        <span><xsl:apply-templates select="tei:w/text()"/></span>
+    </div>
   </xsl:template>
 
   <xsl:template name="css-styles">
@@ -100,7 +100,7 @@
             <xsl:value-of select="concat('width:', format-number(($lrx - $ulx) div $parent_width, '##.##%'), ';')"/>
             <xsl:value-of select="concat('height:', format-number(($lry - $uly) div $parent_height, '##.##%'), ';')"/>
             <!-- positioned absolutely within the line -->
-            <xsl:value-of select="concat('left:', format-number(($ulx - $parent_ulx) div $page_width, '##.##%'))"/>
+            <xsl:value-of select="concat('left:', format-number(($ulx - $parent_ulx) div $parent_width, '##.##%'))"/>
         </xsl:if>
     </xsl:attribute>
 
