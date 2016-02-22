@@ -1,0 +1,29 @@
+#!/usr/bin/env ruby
+
+require 'optparse'
+require 'teifacsimile_to_jekyll'
+
+# usage: jekyllimport_teifacsimile teifilename.xml
+
+options = {}
+OptionParser.new do |opts|
+  opts.banner = "Usage: jekyllimport_teifacsimile [options] teifilename.xml"
+
+  opts.on("-q", "--quiet", "Run without output") do |q|
+    options[:quiet] = q
+  end
+
+  opts.on("--page-one [N]", OptionParser::DecimalInteger,
+        "Page where numbering should start in the export") do |n|
+    options[:page_one] = n
+  end
+
+
+end.parse!
+
+
+puts 'TEI file is required' unless ARGV[0]
+# FIXME: how to display option parser help instead?
+
+TeifacsimileToJekyll.import(ARGV[0], **options)
+

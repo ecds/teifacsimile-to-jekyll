@@ -1,0 +1,91 @@
+<tei:surface xml:id="bmst8.p.idp19957728" type="page" ulx="0" uly="0" lrx="1681" lry="2556" xlink:href="http://pid.emory.edu/ark:/25593/gwzg3" n="10"
+    xmlns:tei="http://www.tei-c.org/ns/1.0" xmlns:xlink="http://www.w3.org/TR/xlink/">
+<!-- sample page with multiple overlapping highlight regions -->
+  <tei:graphic url="http://localhost:8000/books/emory:bmst8/pages/emory:gwzg3/mini-thumbnail/" rend="small-thumbnail"/><tei:graphic url="http://localhost:8000/books/emory:bmst8/pages/emory:gwzg3/info/" rend="json"/><tei:graphic url="http://localhost:8000/books/emory:bmst8/pages/emory:gwzg3/fs/" rend="full"/><tei:graphic url="http://localhost:8000/books/emory:bmst8/pages/emory:gwzg3/single-page/" rend="page"/><tei:graphic url="http://localhost:8000/books/emory:bmst8/pages/emory:gwzg3/thumbnail/" rend="thumbnail"/><tei:zone xml:id="bmst8.b.idp19958704" type="Text" ulx="530" uly="284" lrx="1614" lry="1700">
+    <tei:zone xml:id="bmst8.ln.idp19962368" type="line" ulx="736" uly="295" lrx="1362" lry="343">
+      <tei:line>VOORREDEN.</tei:line>
+    </tei:zone>
+    <tei:zone xml:id="bmst8.ln.idp15175008" type="line" ulx="595" uly="384" lrx="1589" lry="443">
+      <tei:line/>
+    </tei:zone>
+    <tei:zone xml:id="bmst8.ln.idp15176720" type="line" ulx="595" uly="384" lrx="1589" lry="443">
+      <tei:line>Niet anders als den grond der Hellen achter</tei:line>
+    </tei:zone>
+    <tei:zone xml:id="bmst8.ln.idp15179520" type="line" ulx="743" uly="442" lrx="829" lry="483">
+      <tei:line>laat.</tei:line>
+    </tei:zone>
+    <tei:zone xml:id="bmst8.ln.idp19102912" type="line" ulx="545" uly="495" lrx="1590" lry="556">
+      <tei:line>Elendig<tei:anchor type="text-annotation-highlight-start" xml:id="highlight-start-b7905819-0bab-436c-909a-fe076b470479" next="highlight-end-b7905819-0bab-436c-909a-fe076b470479"/> quaad, zo zeer te fchuuwen en te myden!</tei:line>
+    </tei:zone>
+    <tei:zone xml:id="bmst8.ln.idp19105184" type="line" ulx="603" uly="585" lrx="1592" lry="643">
+      <tei:line/>
+    </tei:zone>
+    <tei:zone xml:id="bmst8.ln.idp19106896" type="line" ulx="603" uly="585" lrx="1592" lry="643">
+      <tei:line>Gy zyt voor 't eizend oog een al te diepen</tei:line>
+    </tei:zone>
+    <tei:zone xml:id="bmst8.ln.idp13846640" type="line" ulx="761" uly="640" lrx="925" lry="697">
+      <tei:line>gracht,</tei:line>
+    </tei:zone>
+    <tei:zone xml:id="bmst8.ln.idp13849376" type="line" ulx="551" uly="695" lrx="1554" lry="756">
+      <tei:line>Al wie voorzichtig is wyk af van uwe zyden,</tei:line>
+    </tei:zone>
+    <tei:zone xml:id="bmst8.ln.idp13851648" type="line" ulx="606" uly="783" lrx="1594" lry="844">
+      <tei:line/>
+    </tei:zone>
+    <tei:zone xml:id="bmst8.ln.idp20144224" type="line" ulx="606" uly="783" lrx="1594" lry="844">
+      <tei:line>En <tei:anchor type="text-annotation-highlight-start" xml:id="highlight-start-021e3090-d6f2-4120-ad65-690ab97d60fd" next="highlight-end-021e3090-d6f2-4120-ad65-690ab97d60fd"/>neem den vaften grond der zaligheid in</tei:line>
+    </tei:zone>
+    <tei:zone xml:id="bmst8.ln.idp20147024" type="line" ulx="760" uly="842" lrx="864" lry="884">
+      <tei:line>acht.</tei:line>
+    </tei:zone>
+    <tei:zone xml:id="bmst8.ln.idp20149760" type="line" ulx="552" uly="895" lrx="1597" lry="955">
+      <tei:line>ó <tei:anchor type="text-annotation-highlight-start" xml:id="highlight-start-7db68084-7a80-42da-a3a0-42412636ade3" next="highlight-end-7db68084-7a80-42da-a3a0-42412636ade3"/>Oog der Zielen ! <tei:anchor type="text-annotation-highlight-end" xml:id="highlight-end-7db68084-7a80-42da-a3a0-42412636ade3"/>als die dingen voor u komen,</tei:line>
+    </tei:zone>
+    <tei:zone xml:id="bmst8.ln.idp18659952" type="line" ulx="610" uly="985" lrx="1596" lry="1045">
+      <tei:line/>
+    </tei:zone>
+    <tei:zone xml:id="bmst8.ln.idp18661664" type="line" ulx="610" uly="985" lrx="1596" lry="1045">
+      <tei:line>Die u vertoonen 't eind tot eeuwig goed en</tei:line>
+    </tei:zone>
+    <tei:zone xml:id="bmst8.ln.idp18664544" type="line" ulx="764" uly="1042" lrx="907" lry="1097">
+      <tei:line>quaad,</tei:line>
+    </tei:zone>
+    <tei:zone xml:id="bmst8.ln.idp18540640" type="line" ulx="554" uly="1096" lrx="1596" lry="1160">
+      <tei:line>Zo laatze u niet eerlang, door lift weer Zyn ont¬</tei:line>
+    </tei:zone>
+    <tei:zone xml:id="bmst8.ln.idp18542960" type="line" ulx="764" uly="1168" lrx="931" lry="1206">
+      <tei:line>nomen ,</tei:line>
+    </tei:zone>
+    <tei:zone xml:id="bmst8.ln.idp18545696" type="line" ulx="612" uly="1208" lrx="1597" lry="1268">
+      <tei:anchor type="text-annotation-highlight-start" xml:id="highlight-start-72ce2589-ccf2-49d6-bd88-9edddcf6d3b3" next="highlight-end-72ce2589-ccf2-49d6-bd88-9edddcf6d3b3"/><tei:line>Maar queekt e<tei:anchor type="text-annotation-highlight-end" xml:id="highlight-end-021e3090-d6f2-4120-ad65-690ab97d60fd"/>en Gulden Oogft uit zulk een</tei:line>
+    </tei:zone>
+    <tei:zone xml:id="bmst8.ln.idm23359824" type="line" ulx="763" uly="1266" lrx="1111" lry="1310">
+      <tei:line>vruchtbaar zaad.</tei:line><tei:anchor type="text-annotation-highlight-end" xml:id="highlight-end-72ce2589-ccf2-49d6-bd88-9edddcf6d3b3"/>
+    </tei:zone>
+    <tei:zone xml:id="bmst8.ln.idm23357056" type="line" ulx="554" uly="1322" lrx="1597" lry="1382">
+      <tei:line>6 Oog der Zielen ! laat u langer niet begekken,</tei:line>
+    </tei:zone>
+    <tei:zone xml:id="bmst8.ln.idm24276768" type="line" ulx="614" uly="1411" lrx="1597" lry="1470">
+      <tei:line/>
+    </tei:zone>
+    <tei:zone xml:id="bmst8.ln.idm24275056" type="line" ulx="614" uly="1411" lrx="1597" lry="1470">
+      <tei:line>Van uw benyder, die met fchyn en fcheme-</tei:line>
+    </tei:zone>
+    <tei:zone xml:id="bmst8.ln.idm24272320" type="line" ulx="757" uly="1466" lrx="875" lry="1523">
+      <tei:line>ring,</tei:line>
+    </tei:zone>
+    <tei:zone xml:id="bmst8.ln.idp19034896" type="line" ulx="556" uly="1523" lrx="1598" lry="1582">
+      <tei:line>Van rechts en links gevoeg<tei:anchor type="text-annotation-highlight-end" xml:id="highlight-end-b7905819-0bab-436c-909a-fe076b470479"/>d , u fteeds zoekt af</tei:line>
+    </tei:zone>
+    <tei:zone xml:id="bmst8.ln.idp19037168" type="line" ulx="765" uly="1579" lrx="1011" lry="1632">
+      <tei:line>te trekken,</tei:line>
+    </tei:zone>
+    <tei:zone xml:id="bmst8.ln.idp19039904" type="line" ulx="612" uly="1634" lrx="1596" lry="1697">
+      <tei:line>Van'tallergrootfte, en u, het allernutfte <tei:anchor type="text-annotation-highlight-start" xml:id="highlight-start-postlineanno1" next="highlight-end-postlineanno1"/>ding.</tei:line>
+    </tei:zone>
+  </tei:zone>
+  <tei:zone xml:id="bmst8.b.idm24760448" type="Text" ulx="1462" uly="2030" lrx="1616" lry="2098">
+    <tei:zone xml:id="bmst8.ln.idm24756784" type="line" ulx="1477" uly="2042" lrx="1599" lry="2094">
+      <tei:line>D E</tei:line><tei:anchor type="text-annotation-highlight-end" xml:id="highlight-end-postlineanno1"/></tei:zone>
+  </tei:zone>
+</tei:surface>
