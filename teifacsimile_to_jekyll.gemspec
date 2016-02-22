@@ -12,7 +12,7 @@ Gem::Specification.new do |s|
   s.homepage    = 'https://github.com/emory-libraries-ecds/teifacsimile-to-jekyll'
     # 'http://rubygems.org/gems/hola'
   s.license       = 'Apache-2.0'
-  s.add_runtime_dependency "nokogiri",  ["~> 1.6"]
-  s.add_runtime_dependency "fastimage"
-  s.add_development_dependency "rake"
+  s.add_runtime_dependency "nokogiri",  "~> 1.6"
+  s.add_runtime_dependency 'fastimage',  '~> 1.8', '>= 1.8.1'
+  s.add_development_dependency 'rake', '~> 10.4', '>= 10.4.2'
 end
