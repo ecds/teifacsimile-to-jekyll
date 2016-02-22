@@ -1,6 +1,9 @@
 # teifacsimile-to-jekyll
 Generate jekyll site content from annotated TEI facsimile.
 
+Developed for with [Readux](http://readux.library.emory.edu) ([code](http://github.com/emory-libraries/readux))
+annotated edition export.
+
 [![Travis-CI build status](https://travis-ci.org/emory-libraries-ecds/teifacsimile-to-jekyll.svg "Travis-CI build")](https://travis-ci.org/emory-libraries-ecds/teifacsimile-to-jekyll)
 
 ## Developer notes
