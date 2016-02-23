@@ -6,6 +6,8 @@ annotated edition export.
 
 [![Travis-CI build status](https://travis-ci.org/emory-libraries-ecds/teifacsimile-to-jekyll.svg "Travis-CI build")](https://travis-ci.org/emory-libraries-ecds/teifacsimile-to-jekyll)
 
+[![Coverage Status](https://coveralls.io/repos/github/emory-libraries-ecds/teifacsimile-to-jekyll/badge.svg?branch=develop)](https://coveralls.io/github/emory-libraries-ecds/teifacsimile-to-jekyll?branch=develop)
+
 ## Developer notes
 
 Run the tests:
