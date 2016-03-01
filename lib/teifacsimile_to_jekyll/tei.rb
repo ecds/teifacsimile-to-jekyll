@@ -589,6 +589,24 @@ class TeiFacsimilePage < TeiXmlObject
 
 end
 
+class TeiRef < TeiXmlObject
+    # @!attribute type
+    #   @return [String]
+    xml_attr_reader :type, :xpath => '@type'
+    # @!attribute target
+    #   @return [String]
+    xml_attr_reader :target, :xpath => '@target'
+    # @!attribute text
+    #   @return [String]
+    xml_attr_reader :text, :xpath => 'text()'
+
+    # target id
+    def target_id
+        self.target.gsub(/^#/, '')
+    end
+
+end
+
 # TEI note
 class TeiNote < TeiXmlObject
     attr_accessor :start_target, :end_target
@@ -607,12 +625,22 @@ class TeiNote < TeiXmlObject
     # @!attribute markdown
     #   @return [String] content of the note in markdown format
     xml_attr_reader :markdown, :xpath => './/t:code[@lang="markdown"]'
+    # @!attribute related_pages
+    #   @return [List#TeiRef] related page references
+    xml_attr_reader :related_pages, :xpath => './/t:ref[@type="related page"]',
+        :as => TeiRef, :list => true
 
     def tags
         if self.ana
             self.ana.split(' ').map { |s| s.gsub(/^#/, '')}
         else
             []
+        end
+    end
+
+    def related_page_ids
+        if self.related_pages
+            return self.related_pages.map {|ref| ref.target_id }
         end
     end
 

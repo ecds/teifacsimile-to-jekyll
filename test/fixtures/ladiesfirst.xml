@@ -34418,6 +34418,8 @@
       <tei:note xml:id="annotation-11c8fa74-7839-4d31-8a04-48a50ee4c015" xlink:href="http://readux.library.emory.edu/annotations/api/annotations/11c8fa74-7839-4d31-8a04-48a50ee4c015" type="annotation" resp="sepalme" target="#highlight-11c8fa74-7839-4d31-8a04-48a50ee4c015">
         <tei:p>super sara was here</tei:p>
         <tei:code lang="markdown">super sara was here</tei:code>
+          <tei:ref type="related page" target="#rdx_7sr72.p.idp37977248">http://testpid.library.emory.edu/ark:/25593/pwrph</tei:ref>
+          <tei:ref type="related page" target="#rdx_7sr72.p.idp37861792">http://testpid.library.emory.edu/ark:/25593/pwt7x</tei:ref>
       </tei:note>
       <tei:note xml:id="annotation-569bc368-008c-48a6-b69b-438946182c1e" xlink:href="http://readux.library.emory.edu/annotations/api/annotations/569bc368-008c-48a6-b69b-438946182c1e" type="annotation" resp="sepalme" target="#highlight-569bc368-008c-48a6-b69b-438946182c1e">
         <tei:p>this is fourth note</tei:p>
