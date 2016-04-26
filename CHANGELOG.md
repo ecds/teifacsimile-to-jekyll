@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.5.1
+
+- Correct TEI interp xpath to pull interp (tag) value from the correct location
+
 ## 0.5 - Initial release
 
 Developed with [readux](http://github.com/emory-libraries/readux) 1.4 and [digitaledition-jekylltheme](https://github.com/emory-libraries-ecds/digitaledition-jekylltheme).
