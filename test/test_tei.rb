@@ -4,7 +4,7 @@ require 'minitest/autorun'
 require 'teifacsimile_to_jekyll/tei'
 require 'fileutils'
 
-class TeiTest < Minitest::Unit::TestCase
+class TeiTest < Minitest::Test
     @@tei_fixture = File.expand_path('../fixtures/ladiesfirst.xml', __FILE__)
     @@teipage_fixture = File.expand_path('../fixtures/page.xml', __FILE__)
 

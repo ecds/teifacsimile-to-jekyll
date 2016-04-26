@@ -1,7 +1,7 @@
 require 'minitest/autorun'
 require 'teifacsimile_to_jekyll'
 
-class TeiFacsimileToJekyllTest < Minitest::Unit::TestCase
+class TeiFacsimileToJekyllTest < Minitest::Test
     @@tei_fixture = File.expand_path('../fixtures/ladiesfirst.xml', __FILE__)
 
     def test_annotation_frontmatter
