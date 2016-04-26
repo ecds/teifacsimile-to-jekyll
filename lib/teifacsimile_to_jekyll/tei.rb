@@ -686,7 +686,7 @@ class TeiInterp < TeiXmlObject
     xml_attr_reader :id, :xpath => '@xml:id'
     # @!attribute value
     #   @return [String]
-    xml_attr_reader :value, :xpath => '@value'
+    xml_attr_reader :value, :xpath => 'text()'
 end
 
 # TeiName element
