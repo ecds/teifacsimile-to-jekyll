@@ -5,6 +5,9 @@ Developed for with [Readux](http://readux.library.emory.edu) ([code](http://gith
 annotated edition export.
 
 [![Travis-CI build status](https://travis-ci.org/emory-libraries-ecds/teifacsimile-to-jekyll.svg "Travis-CI build")](https://travis-ci.org/emory-libraries-ecds/teifacsimile-to-jekyll)
+[![Coverage Status](https://coveralls.io/repos/github/emory-libraries-ecds/teifacsimile-to-jekyll/badge.svg?branch=develop)](https://coveralls.io/github/emory-libraries-ecds/teifacsimile-to-jekyll?branch=develop)
+[![Code Climate](https://codeclimate.com/github/emory-libraries-ecds/teifacsimile-to-jekyll/badges/gpa.svg)](https://codeclimate.com/github/emory-libraries-ecds/teifacsimile-to-jekyll)
+[![Requirements Status](https://requires.io/github/emory-libraries-ecds/teifacsimile-to-jekyll/requirements.svg?branch=develop)](https://requires.io/github/emory-libraries-ecds/teifacsimile-to-jekyll/requirements/?branch=develop)
 
 ## Developer notes
 

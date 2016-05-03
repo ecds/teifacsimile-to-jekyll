@@ -24,14 +24,13 @@ class TeifacsimileToJekyll
     # directory where tag stub pages should be created
     @tag_dir = 'tags'
 
-    # Generate a jekyll collection volume page with appropriate yaml
-    # metadata from a TEI facsimile page and annotations
-    # @param teipage [TeiPage]
-    def self.output_page(teipage, opts={})
-        puts "Page #{teipage.n}" unless opts[:quiet]
+    # Generate page metadata from a TEI Page to be used
+    # in the jekyll annotation page front matter
+    # @param teinote [TeiPage]
+    def self.page_frontmatter(teipage, opts={})
         # by default, use page number from the tei
         page_number = teipage.n.to_i
-        path = File.join(@volume_page_dir, "%04d.html" % teipage.n.to_i)
+
         # retrieve page graphic urls by type for inclusion in front matter
         images = {}  # hash of image urls by rend attribute
         teipage.images.each { |img| images[img.rend] = img.url }
@@ -65,7 +64,18 @@ class TeifacsimileToJekyll
 
             front_matter['permalink'] = permalink
         end
+        return front_matter
+    end
 
+    # Generate a jekyll collection volume page with appropriate yaml
+    # metadata from a TEI facsimile page and annotations
+    # @param teipage [TeiPage]
+    def self.output_page(teipage, opts={})
+        puts "Page #{teipage.n}" unless opts[:quiet]
+        # base output filename on page number
+        path = File.join(@volume_page_dir, "%04d.html" % teipage.n.to_i)
+
+        front_matter = page_frontmatter(teipage, opts)
 
         File.open(path, 'w') do |file|
             # write out front matter as yaml
@@ -75,6 +85,33 @@ class TeifacsimileToJekyll
              # page text content as html with annotation highlights
             file.write teipage.html()
         end
+    end
+
+    # Generate annotation metadata from a TEI Note to be used
+    # in the jekyll annotation page front matter
+    # @param teinote [TeiNote]
+    def self.annotation_frontmatter(teinote)
+        front_matter = {
+            'annotation_id' => teinote.annotation_id,
+            'author' => teinote.author,
+            'tei_target' => teinote.target,
+            'annotated_page' => teinote.annotated_page.id,
+            'page_index' => teinote.annotated_page.index,
+            'target' => teinote.start_target,
+        }
+        if not teinote.tags.empty?
+            front_matter['tags'] = teinote.tags
+        end
+
+        if not teinote.related_pages.empty?
+            front_matter['related_pages'] = teinote.related_page_ids
+        end
+
+        if teinote.range_target?
+            front_matter['end_target'] = teinote.end_target
+        end
+
+        return front_matter
     end
 
     # Generate a jekyll collection annotation with appropriate yaml
@@ -91,21 +128,7 @@ class TeifacsimileToJekyll
         # (otherwise results in redundant file path and name/url)
         path = File.join(@annotation_dir, "%s.md" % teinote.annotation_id)
 
-        front_matter = {
-            'annotation_id' => teinote.annotation_id,
-            'author' => teinote.author,
-            'tei_target' => teinote.target,
-            'annotated_page' => teinote.annotated_page.id,
-            'page_index' => teinote.annotated_page.index,
-            'target' => teinote.start_target,
-        }
-        if teinote.tags
-            front_matter['tags'] = teinote.tags
-        end
-
-        if teinote.range_target?
-            front_matter['end_target'] = teinote.end_target
-        end
+        front_matter = annotation_frontmatter(teinote)
 
         File.open(path, 'w') do |file|
             # write out front matter as yaml

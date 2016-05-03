@@ -4,7 +4,7 @@ require 'minitest/autorun'
 require 'teifacsimile_to_jekyll/tei'
 require 'fileutils'
 
-class TeiTest < Minitest::Unit::TestCase
+class TeiTest < Minitest::Test
     @@tei_fixture = File.expand_path('../fixtures/ladiesfirst.xml', __FILE__)
     @@teipage_fixture = File.expand_path('../fixtures/page.xml', __FILE__)
 
@@ -145,6 +145,21 @@ class TeiTest < Minitest::Unit::TestCase
         assert_equal 'rdx_7sr72.p.idp356752', note.annotated_page.id
         assert_equal [], note.tags
 
+        # annotation with related pages
+        assert_equal 2, note.related_pages.size
+        assert_instance_of TeiRef, note.related_pages[0]
+        assert_equal 'related page', note.related_pages[0].type
+        assert_equal '#rdx_7sr72.p.idp37977248', note.related_pages[0].target
+        assert_equal 'http://testpid.library.emory.edu/ark:/25593/pwrph', note.related_pages[0].text
+        assert_equal '#rdx_7sr72.p.idp37861792', note.related_pages[1].target
+        # target id without #
+        assert_equal 'rdx_7sr72.p.idp37977248', note.related_pages[0].target_id
+        assert_equal 'rdx_7sr72.p.idp37861792', note.related_pages[1].target_id
+
+        assert_equal ['rdx_7sr72.p.idp37977248', 'rdx_7sr72.p.idp37861792'],
+            note.related_page_ids
+
+
         # TODO: test ranged annotation also
 
         # annotation with tags
@@ -154,6 +169,9 @@ class TeiTest < Minitest::Unit::TestCase
         assert_includes tags, 'whee'
         assert_includes tags, 'formatting'
         assert_includes tags, 'test'
+
+
+
     end
 
     def test_teizone
