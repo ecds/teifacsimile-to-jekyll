@@ -1,8 +1,9 @@
 # Change Log
 
-## 0.5.1
+## 0.6
 
 - Correct TEI interp xpath to pull interp (tag) value from the correct location
+- Include tei note related pages in annotation metadata
 
 ## 0.5 - Initial release
 
