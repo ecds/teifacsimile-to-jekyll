@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.7
+
+- Add an option for no deep zoom, which adjusts jekyll site configuration
+
 ## 0.6
 
 - Correct TEI interp xpath to pull interp (tag) value from the correct location
