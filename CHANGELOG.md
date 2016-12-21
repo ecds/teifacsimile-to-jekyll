@@ -3,7 +3,6 @@
 ## 0.7
 
 - Add an option for no deep zoom, which adjusts jekyll site configuration
-- Update all http schema to https in generating volume_pages 
 
 ## 0.6
 
