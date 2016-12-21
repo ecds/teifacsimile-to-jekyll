@@ -33,7 +33,10 @@ class TeifacsimileToJekyll
 
         # retrieve page graphic urls by type for inclusion in front matter
         images = {}  # hash of image urls by rend attribute
-        teipage.images.each { |img| images[img.rend] = img.url }
+
+        # replace http:// with https:// protocol as we have updated our schema
+        teipage.images.each { |img| images[img.rend] = img.url.gsub('http://', 'https://') }
+
         # construct page front matter
         front_matter = {
             'sort_order'=> page_number,
@@ -326,4 +329,3 @@ class TeifacsimileToJekyll
 end
 
 require 'teifacsimile_to_jekyll/tei'
-
