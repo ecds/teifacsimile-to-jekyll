@@ -46,7 +46,7 @@ class TeiFacsimileToJekyllTest < Minitest::Test
         assert_equal page.annotation_count, frontmatter['annotation_count']
         page.images.each { |img|
             assert frontmatter['images'].key?(img.rend)
-            assert_equal img.url, frontmatter['images'][img.rend]
+            assert_equal img.url.gsub("http://", "https://"), frontmatter['images'][img.rend]
         }
         assert_equal false, frontmatter.key?('short_label'),
             'short label should not be set when start page is not specified'

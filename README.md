@@ -1,6 +1,8 @@
 # teifacsimile-to-jekyll
 Generate jekyll site content from annotated TEI facsimile.
 
+**Requires Ruby 2.x**
+
 Developed for with [Readux](http://readux.library.emory.edu) ([code](http://github.com/emory-libraries/readux))
 annotated edition export.
 

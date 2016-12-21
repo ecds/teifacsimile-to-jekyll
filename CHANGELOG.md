@@ -1,5 +1,10 @@
 # Change Log
 
+## 0.7
+
+- Add an option for no deep zoom, which adjusts jekyll site configuration
+- Update all http schema to https in generating volume_pages 
+
 ## 0.6
 
 - Correct TEI interp xpath to pull interp (tag) value from the correct location
@@ -21,5 +26,3 @@ jekyllimport_teifacsimile script to import a TEI facsimile document with annotat
 - includes TEI file in the jekyll site, and adds a reference to the site config
 - uses XSLT to convert TEI facsimile page OCR content to positional HTML,
   for speed on highly nested content (e.g. content generated from METS/ALTO)
-
-

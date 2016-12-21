@@ -33,7 +33,10 @@ class TeifacsimileToJekyll
 
         # retrieve page graphic urls by type for inclusion in front matter
         images = {}  # hash of image urls by rend attribute
-        teipage.images.each { |img| images[img.rend] = img.url }
+
+        # replace http:// with https:// protocol as we have updated our schema
+        teipage.images.each { |img| images[img.rend] = img.url.gsub('http://', 'https://') }
+
         # construct page front matter
         front_matter = {
             'sort_order'=> page_number,
@@ -226,6 +229,12 @@ class TeifacsimileToJekyll
             pub_info['tei_xml'] = opts['tei_filename']
         end
 
+        # configure extra js for volume pages based on deep zoom configuration
+        volume_js = ['volume-page.js', 'hammer.min.js']
+        if opts[:deep_zoom]
+            volume_js.push('deepzoom.js').push('openseadragon.min.js')
+        end
+
         # add all annotator names to the document as editors
         # of the annotated edition; use username if name is empty
         teidoc.resp.each do |resp, name|
@@ -256,8 +265,8 @@ class TeifacsimileToJekyll
                 'values' => {
                     'layout' => 'volume_page',
                     'short_label' => 'p.',
-                    'extra_js' => ['deepzoom.js', 'openseadragon.min.js',
-                        'volume-page.js', 'hammer.min.js']
+                    'deep_zoom' => opts[:deep_zoom],
+                    'extra_js' => volume_js
                 }
               },
               {'scope' => {
@@ -320,4 +329,3 @@ class TeifacsimileToJekyll
 end
 
 require 'teifacsimile_to_jekyll/tei'
-
