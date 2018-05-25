@@ -1,5 +1,10 @@
 # Change Log
 
+
+## 0.7.1
+
+- Address security concern raised by Nokogiri by upgrading it to 1.8.2
+
 ## 0.7
 
 - Add an option for no deep zoom, which adjusts jekyll site configuration
