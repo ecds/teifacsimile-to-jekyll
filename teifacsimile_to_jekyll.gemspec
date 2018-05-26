@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
   s.name        = 'teifacsimile_to_jekyll'
-  s.version     = '0.7.0'
-  s.date        = '2016-09-13'
+  s.version     = '0.7.1'
+  s.date        = '2018-05-25'
   s.summary     = "Import TEI facsimile pages and annotations as Jekyll content"
   s.description = "A script to import TEI facsimile + annotation into a Jekyll site"
   s.authors     = ["Rebecca Sutton Koeser"]
